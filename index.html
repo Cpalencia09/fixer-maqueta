@@ -512,6 +512,7 @@ body .on-grad .logo { color: #fff; }
     { id: 14, n: 'Víctor Mora', r: 'piscinero', rt: 4.6, rv: 14, z: 'La Unión', p: 35, t: '3 horas', pro: false, h24: false, col: '#0891b2' },
     { id: 15, n: 'Hugo Díaz', r: 'jardinero', rt: 4.8, rv: 25, z: 'Alto Hatillo', p: 30, t: '2 horas', pro: false, h24: false, col: '#15803d' }
   ];
+  TECHS.forEach(function (t) { t.rs = [t.r]; t.ver = true; });
   var FEATURED = [1, 2, 4, 5];
   var CITIES = ['Caracas', 'Baruta', 'Chacao', 'El Hatillo', 'Sucre', 'Los Teques', 'Valencia', 'Maracay', 'Maracaibo', 'Barquisimeto'];
   var BOT = [
@@ -532,14 +533,16 @@ body .on-grad .logo { color: #fff; }
   function usd(n) { return '$' + Number(n).toFixed(2); }
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function rub(id) { return RUBROS.filter(function (r) { return r.id === id; })[0]; }
-  function tech(id) { return TECHS.filter(function (t) { return t.id === id; })[0]; }
+  function allTechs() { return TECHS.concat(S.techDB); }
+  function tech(id) { return allTechs().filter(function (t) { return String(t.id) === String(id); })[0]; }
+  function techsOf(rid) { return allTechs().filter(function (t) { return t.rs.indexOf(rid) > -1; }); }
   function initials(n) { return n.split(' ').map(function (w) { return w[0]; }).slice(0, 2).join('').toUpperCase(); }
   function norm(s) { return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
 
   /* ---------- Firebase (si no hay configuración, la app funciona en modo demo) ---------- */
   var CFG = window.FIREBASE_CONFIG;
   var HAS_FB = !!(CFG && CFG.apiKey && CFG.apiKey.indexOf('TU_') !== 0 && window.firebase);
-  var fbAuth, db, unsubReq, pendingName = null;
+  var fbAuth, db, unsubReq = [], pendingName = null;
   if (HAS_FB) { firebase.initializeApp(CFG); fbAuth = firebase.auth(); db = firebase.firestore(); }
   var FB_ERR = {
     'auth/invalid-email': 'El correo no es válido.',
@@ -559,7 +562,7 @@ body .on-grad .logo { color: #fff; }
 
   /* ---------- Estado ---------- */
   var S = {
-    screen: HAS_FB ? 'loading' : 'landing', uid: null, role: null, tab: 'inicio', step: 1, authMode: 'login', authErr: '',
+    screen: HAS_FB ? 'loading' : 'landing', uid: null, role: null, techDB: [], jobsDB: [], tab: 'inicio', step: 1, authMode: 'login', authErr: '',
     user: { name: 'Carlos Palencia', email: 'elgramu702@gmail.com' },
     form: { name: 'Carlos Palencia', phone: '', cedula: '', city: '', zona: '', rubros: [], exp: '', bio: '', docs: { ced: false, selfie: false, cert: false }, tarifa: '', h24: false, radio: '10' },
     q: '', filterRubro: null, sheet: null, toast: '', mapZoom: 1, gps: false, convSwap: false, usdVal: '', bsVal: '',
@@ -578,13 +581,13 @@ body .on-grad .logo { color: #fff; }
 
   /* ---------- Piezas ---------- */
   function techCard(t) {
-    var r = rub(t.r);
+    var r = rub(S.filterRubro && t.rs.indexOf(S.filterRubro) > -1 ? S.filterRubro : t.r);
     return '<button class="card tech" data-act="openTech" data-id="' + t.id + '">' +
       '<div class="avatar" style="background:' + t.col + '">' + initials(t.n) + '<span class="on"></span></div>' +
       '<div class="info"><div class="nm">' + esc(t.n) + ic('badge') + (t.h24 ? '<span class="tag h24">' + ic('clock') + '24h</span>' : '') + '</div>' +
       '<div class="rb">' + r.n + '</div>' +
-      '<div class="tags"><span class="tag">' + ic('badge') + 'Verificado</span>' + (t.pro ? '<span class="tag pro">' + ic('award') + 'Super Pro</span>' : '') + '</div>' +
-      '<div class="meta"><span class="st">' + ic('star') + '<b>' + t.rt.toFixed(1) + '</b> <span class="muted">(' + t.rv + ')</span></span><span class="lc">' + ic('pin') + esc(t.z) + '</span></div>' +
+      '<div class="tags"><span class="tag">' + ic('badge') + (t.ver ? 'Verificado' : 'Nuevo') + '</span>' + (t.pro ? '<span class="tag pro">' + ic('award') + 'Super Pro</span>' : '') + '</div>' +
+      '<div class="meta"><span class="st">' + ic('star') + (t.rv || !t.real ? '<b>' + t.rt.toFixed(1) + '</b> <span class="muted">(' + t.rv + ')</span>' : '<b>Nuevo</b>') + '</span><span class="lc">' + ic('pin') + esc(t.z) + '</span></div>' +
       '<div class="foot"><span class="t">' + ic('clock') + t.t + '</span><span class="price"><b>' + usd(t.p) + '</b><span>≈ Bs. ' + fmt(t.p * BCV) + '</span></span></div></div></button>';
   }
   function nav(items) {
@@ -696,10 +699,10 @@ body .on-grad .logo { color: #fff; }
       '<div style="padding-inline:20px"><div class="trust"><div class="badge3">' + ic('badge') + 'Verificados</div><div class="badge3">' + ic('shieldOk') + 'Pago seguro</div><div class="badge3">' + ic('zap') + 'Respuesta rápida</div></div>' +
       '<div class="sec-head"><h2>Rubros</h2><a data-act="tab" data-tab="servicios">Ver todos</a></div><div class="rubros">' +
       top.map(function (r) { return '<button class="card rubro" style="--c:' + r.c + '" data-act="rubro" data-id="' + r.id + '"><div class="ri">' + ic(r.ic) + '</div><span>' + r.n + '</span></button>'; }).join('') + '</div>' +
-      '<div class="sec-head"><h2>' + ic('pin') + 'Técnicos cerca de ti</h2><span class="count">' + TECHS.length + ' disponibles</span></div>' +
+      '<div class="sec-head"><h2>' + ic('pin') + 'Técnicos cerca de ti</h2><span class="count">' + allTechs().length + ' disponibles</span></div>' +
       '<div class="mapbox">' + mapSvg() + '<div class="zoom"><button data-act="zoom" data-d="1" aria-label="Acercar">+</button><button data-act="zoom" data-d="-1" aria-label="Alejar">−</button></div><button class="gps" data-act="gps">' + ic('gps') + (S.gps ? 'GPS activo' : 'Activar GPS') + '</button><span class="attr">Mapa ilustrativo · © OpenStreetMap</span></div>' +
       '<div class="sec-head"><h2>' + ic('sparkles') + 'Técnicos destacados</h2><a data-act="tab" data-tab="servicios">Ver más</a></div>' +
-      FEATURED.map(function (i) { return techCard(tech(i)); }).join('') + converter() +
+      S.techDB.slice(0, 2).map(techCard).join('') + FEATURED.map(function (i) { return techCard(tech(i)); }).join('') + converter() +
       '<div class="escrow"><div class="h"><i>' + ic('shieldOk') + '</i>Pago en custodia</div><p>Tu dinero se retiene hasta que el técnico completa el trabajo y tú liberas el pago con un código de cierre.</p><div class="flow"><span>Solicitas</span>' + ic('arrowR') + '<span>Técnico trabaja</span>' + ic('arrowR') + '<span>Liberas pago</span></div></div></div></div>' + fab();
   }
   function converter() {
@@ -720,28 +723,32 @@ body .on-grad .logo { color: #fff; }
       var l = list.filter(function (r) { return r.g === g; });
       if (!l.length) return '';
       return '<div class="group-h"><i class="' + cls + '">' + ic(icn) + '</i>' + title + '<span class="n">' + l.length + '</span></div>' + l.map(function (r) {
-        var n = TECHS.filter(function (t) { return t.r === r.id; }).length;
+        var n = techsOf(r.id).length;
         return '<button class="card svc" style="--c:' + r.c + '" data-act="rubro" data-id="' + r.id + '"><div class="ri">' + ic(r.ic) + '</div><div class="tx"><b>' + r.n + '</b><span>' + r.d + '</span><br><span class="n">' + n + (n === 1 ? ' técnico' : ' técnicos') + '</span></div></button>';
       }).join('');
     }
     return '<div class="resultline">' + ic('grid') + list.length + ' resultados</div>' + grp('t', 'Técnicos', 'wrench', '') + grp('s', 'Servicios', 'sparkles', 't');
   }
   function rubroList() {
-    var r = rub(S.filterRubro), l = TECHS.filter(function (t) { return t.r === r.id; });
+    var r = rub(S.filterRubro), l = techsOf(r.id);
     return '<div class="view nopad"><div class="hdr page"><div class="hdr-top"><button class="back" data-act="back" aria-label="Volver">' + ic('arrowL') + '</button>' + LOGO('sm white') + '</div><h1>' + r.n + '</h1><p>' + l.length + (l.length === 1 ? ' técnico disponible' : ' técnicos disponibles') + ' cerca de ti</p></div>' +
       '<div style="padding-inline:20px">' + (l.length ? l.map(techCard).join('') : '<div class="empty"><div class="ei">' + ic(r.ic) + '</div><b>Aún no hay técnicos</b><p>Pronto habrá profesionales de ' + r.n + ' en tu zona.</p></div>') + '</div></div>' + fab();
   }
 
-  var ST = { custodia: 1, trabajando: 2, porliberar: 3, liberado: 4 };
+  var ST = { rechazada: 0, pendiente: 1, custodia: 1, trabajando: 2, porliberar: 3, liberado: 4 };
   function reqCard(q) {
-    var t = tech(q.tid), r = rub(t.r), s = ST[q.st];
+    var t = tech(q.tid) || { n: q.tn || 'Técnico', r: q.tr || 'plomeria', z: q.tz || '', col: '#2a7f9e' }, r = rub(q.tr || t.r), s = ST[q.st];
     var steps = ['Solicitado', 'En custodia', 'Terminado', 'Liberado'];
     var prog = '<div class="prog">' + steps.map(function (n, i) { return (i ? '<span class="ln' + (s > i ? ' done' : '') + '"></span>' : '') + '<div class="p' + (s > i ? ' done' : '') + '"><i>' + (s > i ? '✓' : i + 1) + '</i>' + n + '</div>'; }).join('') + '</div>';
     var act = '';
     if (q.st === 'custodia') act = '<button class="btn teal sm" style="width:100%;margin-top:14px" data-act="reqDone" data-id="' + q.id + '">Simular: el técnico terminó</button>';
-    if (q.st === 'porliberar') act = '<div class="codebox"><div class="input">' + ic('lock') + '<input id="code-' + q.id + '" inputmode="numeric" maxlength="4" placeholder="Código de cierre" aria-label="Código de cierre"></div><button class="btn sm" data-act="release" data-id="' + q.id + '">Liberar</button></div><div class="codehint">Código de prueba: <b>' + q.code + '</b> (en la app real lo da el técnico)</div>' + (q.err ? '<p class="err" style="margin:10px 0 0">' + q.err + '</p>' : '');
+    if (q.st === 'porliberar') act = '<div class="codebox"><div class="input">' + ic('lock') + '<input id="code-' + q.id + '" inputmode="numeric" maxlength="4" placeholder="Código de cierre" aria-label="Código de cierre"></div><button class="btn sm" data-act="release" data-id="' + q.id + '">Liberar</button></div>' + (q.tecnicoId ? '<div class="codehint">Pídele el código de cierre de 4 dígitos a ' + esc(t.n.split(' ')[0]) + '.</div>' : '<div class="codehint">Código de prueba: <b>' + q.code + '</b> (en la app real lo da el técnico)</div>') + (q.err ? '<p class="err" style="margin:10px 0 0">' + q.err + '</p>' : '');
+    var info = function (txt, bad) { return '<div class="codehint" style="' + (bad ? 'background:var(--danger-soft);color:var(--danger)' : 'background:var(--teal-soft);color:var(--btn)') + '">' + txt + '</div>'; };
+    if (q.st === 'pendiente') act = info('Esperando que ' + esc(t.n.split(' ')[0]) + ' acepte tu solicitud. Tu pago queda en custodia.');
+    if (q.st === 'trabajando') act = info(esc(t.n.split(' ')[0]) + ' aceptó y está en camino. Cuando termine, te dará un código de cierre.');
+    if (q.st === 'rechazada') act = info('El técnico no pudo tomar tu solicitud. No se cobra nada. Prueba con otro técnico.', true);
     if (q.st === 'liberado') act = '<div class="stars" role="group" aria-label="Califica al técnico"><span class="muted" style="margin-right:6px;font-weight:600">Califica:</span>' + [1, 2, 3, 4, 5].map(function (n) { return '<button class="' + (q.rate >= n ? 'on' : '') + '" data-act="rate" data-id="' + q.id + '" data-n="' + n + '" aria-label="' + n + ' estrellas">' + ic('star') + '</button>'; }).join('') + '</div>';
-    return '<div class="card req"><div class="top"><div class="avatar" style="background:' + t.col + '">' + initials(t.n) + '</div><div class="tx"><b>' + esc(t.n) + '</b><span>' + r.n + ' · ' + esc(t.z) + '</span></div><span class="tag ' + (q.st === 'liberado' ? 'ok' : '') + '">' + ['', 'En custodia', 'En custodia', 'Por liberar', 'Completado'][s] + '</span></div>' +
+    return '<div class="card req"><div class="top"><div class="avatar" style="background:' + t.col + '">' + initials(t.n) + '</div><div class="tx"><b>' + esc(t.n) + '</b><span>' + r.n + ' · ' + esc(t.z) + '</span></div><span class="tag ' + (q.st === 'liberado' ? 'ok' : '') + '">' + (q.st === 'pendiente' ? 'Esperando técnico' : q.st === 'rechazada' ? 'Rechazada' : ['', 'En custodia', 'En custodia', 'Por liberar', 'Completado'][s]) + '</span></div>' +
       (q.desc ? '<p class="desc">«' + esc(q.desc) + '»</p>' : '') + prog +
       '<div class="amount"><span class="muted">' + (q.st === 'liberado' ? 'Pagado' : 'Retenido en custodia') + '</span><span class="price"><b>' + usd(q.amt) + '</b><span>≈ Bs. ' + fmt(q.amt * BCV) + '</span></span></div>' + act + '</div>';
   }
@@ -799,8 +806,8 @@ body .on-grad .logo { color: #fff; }
     }
     if (sh.t === 'tech') {
       var t = tech(sh.id), r = rub(t.r);
-      return '<div class="scrim" data-act="closeSheet"><div class="sheet" data-stop><div class="sheet-b"><div class="detail-top"><div class="avatar" style="background:' + t.col + '">' + initials(t.n) + '<span class="on"></span></div><div style="min-width:0"><div class="tech nm" style="display:flex;padding:0;border:0;box-shadow:none;background:none;margin:0;gap:8px"><span>' + esc(t.n) + '</span>' + ic('badge') + '</div><div class="muted" style="margin:2px 0 8px">' + r.n + ' · ' + esc(t.z) + '</div><div style="display:flex;gap:8px;flex-wrap:wrap"><span class="tag">' + ic('badge') + 'Verificado</span>' + (t.pro ? '<span class="tag pro">' + ic('award') + 'Super Pro</span>' : '') + '</div></div></div>' +
-        '<div class="kv"><div><b>★ ' + t.rt.toFixed(1) + '</b><span>' + t.rv + ' reseñas</span></div><div><b>' + t.t + '</b><span>Llegada</span></div><div><b>' + usd(t.p) + '</b><span>Visita</span></div></div>' +
+      return '<div class="scrim" data-act="closeSheet"><div class="sheet" data-stop><div class="sheet-b"><div class="detail-top"><div class="avatar" style="background:' + t.col + '">' + initials(t.n) + '<span class="on"></span></div><div style="min-width:0"><div class="tech nm" style="display:flex;padding:0;border:0;box-shadow:none;background:none;margin:0;gap:8px"><span>' + esc(t.n) + '</span>' + ic('badge') + '</div><div class="muted" style="margin:2px 0 8px">' + r.n + ' · ' + esc(t.z) + '</div><div style="display:flex;gap:8px;flex-wrap:wrap"><span class="tag">' + ic('badge') + (t.ver ? 'Verificado' : 'Nuevo') + '</span>' + (t.pro ? '<span class="tag pro">' + ic('award') + 'Super Pro</span>' : '') + '</div></div></div>' +
+        '<div class="kv"><div><b>' + (t.real && !t.rv ? 'Nuevo' : '★ ' + t.rt.toFixed(1)) + '</b><span>' + t.rv + ' reseñas</span></div><div><b>' + t.t + '</b><span>Llegada</span></div><div><b>' + usd(t.p) + '</b><span>Visita</span></div></div>' +
         '<div class="field" style="margin:0"><label for="reqDesc">¿Qué necesitas?</label><div class="input area"><textarea id="reqDesc" placeholder="Describe el trabajo para que ' + esc(t.n.split(' ')[0]) + ' llegue preparado.">' + esc(sh.desc || '') + '</textarea></div></div>' +
         '<div class="note">' + ic('shieldOk') + '<span>Pagas <b>' + usd(t.p) + '</b> (≈ Bs. ' + fmt(t.p * BCV) + ') y el dinero queda en custodia hasta que ingreses el código de cierre.</span></div></div>' +
         '<div class="sheet-f two"><button class="btn ghost" data-act="closeSheet">Cancelar</button><button class="btn" data-act="hire" data-id="' + t.id + '">Solicitar</button></div></div></div>';
@@ -831,10 +838,11 @@ body .on-grad .logo { color: #fff; }
       h = v + nav(items);
     } else {
       var it2 = [['inicio', 'Inicio', 'home'], ['solicitudes', 'Solicitudes', 'inbox'], ['ingresos', 'Ingresos', 'grid'], ['perfil', 'Perfil', 'user']];
-      h = (S.tab === 'inicio' ? techHome() : S.tab === 'solicitudes' ? techJobs() : S.tab === 'ingresos' ? ingresos() : perfil()) + nav(it2);
+      var fbT = HAS_FB && S.uid;
+      h = (S.tab === 'inicio' ? (fbT ? techHomeFB() : techHome()) : S.tab === 'solicitudes' ? (fbT ? techJobsFB() : techJobs()) : S.tab === 'ingresos' ? (fbT ? ingresosFB() : ingresos()) : perfil()) + nav(it2);
     }
     var keep = {};
-    ['aName', 'aMail', 'aPass'].forEach(function (k) { var e0 = document.getElementById(k); if (e0) keep[k] = e0.value; });
+    app.querySelectorAll('input[id],textarea[id]').forEach(function (e0) { if (e0.id !== 'chatIn') keep[e0.id] = e0.value; });
     var activeId = document.activeElement && document.activeElement.id, selS, selE;
     if (activeId) { selS = document.activeElement.selectionStart; selE = document.activeElement.selectionEnd; }
     app.innerHTML = h + sheetHtml() + (S.toast ? '<div class="toast" role="status">' + esc(S.toast) + '</div>' : '');
@@ -874,7 +882,7 @@ body .on-grad .logo { color: #fff; }
     zoom: function (d) { go({ mapZoom: Math.max(.8, Math.min(2.2, S.mapZoom + .4 * d.d)) }); },
     gps: function () { go({ gps: true }); toast('Ubicación activada. Mostrando técnicos a tu alrededor.'); },
     convSwap: function () { go({ convSwap: !S.convSwap }); },
-    openTech: function (d) { go({ sheet: { t: 'tech', id: +d.id } }); },
+    openTech: function (d) { go({ sheet: { t: 'tech', id: d.id } }); },
     closeSheet: function () { go({ sheet: null }); },
     chat: function () { go({ sheet: { t: 'chat' } }); },
     legal: function (d) { go({ sheet: { t: 'legal', k: d.k } }); },
@@ -882,8 +890,9 @@ body .on-grad .logo { color: #fff; }
     toast: function (d) { toast(d.m); },
     quick: function (d) { sendChat(d.q); },
     hire: function (d) {
-      var t = tech(+d.id), ta = document.getElementById('reqDesc'), desc = ta ? ta.value.trim() : '';
-      var nq = { tid: t.id, amt: t.p, st: 'custodia', desc: desc, code: String(1000 + Math.floor(Math.random() * 9000)), rate: 0, ts: Date.now() };
+      var t = tech(d.id), ta = document.getElementById('reqDesc'), desc = ta ? ta.value.trim() : '';
+      var nq = { tid: t.id, amt: t.p, st: t.real ? 'pendiente' : 'custodia', tn: t.n, tr: t.rs.indexOf(S.filterRubro) > -1 ? S.filterRubro : t.r, tz: t.z, cliente: S.user.name, desc: desc, code: String(1000 + Math.floor(Math.random() * 9000)), rate: 0, ts: Date.now() };
+      if (t.real) nq.tecnicoId = t.id;
       if (HAS_FB && S.uid) {
         var ref = db.collection('solicitudes').doc(); nq.id = ref.id; nq.clienteId = S.uid;
         ref.set(nq).catch(function (e) { toast(fbMsg(e)); });
@@ -922,15 +931,19 @@ body .on-grad .logo { color: #fff; }
     h24: function () { S.form.h24 = !S.form.h24; render(); },
     enterTech: function () { go({ screen: 'app', tab: 'inicio' }); },
     /* técnico */
-    online: function () { go({ techOnline: !S.techOnline }); },
+    online: function () {
+      go({ techOnline: !S.techOnline });
+      if (HAS_FB && S.uid) db.collection('tecnicos').doc(S.uid).update({ online: S.techOnline }).catch(function () {});
+    },
     accept: function (d) {
+      if (HAS_FB) return jobSt(d.id, 'trabajando', 'Solicitud aceptada. Revisa Solicitudes.');
       var q = S.techReq.filter(function (x) { return x.id === d.id; })[0];
       S.techReq = S.techReq.filter(function (x) { return x.id !== d.id; });
       S.techJobs.unshift({ id: q.id, cliente: q.cliente, rubro: q.rubro, z: q.z, d: q.d, amt: q.amt, done: false, code: String(1000 + Math.floor(Math.random() * 9000)) });
       render(); toast('Solicitud aceptada. Revisa Solicitudes.');
     },
-    decline: function (d) { S.techReq = S.techReq.filter(function (x) { return x.id !== d.id; }); render(); },
-    finishJob: function (d) { var j = S.techJobs.filter(function (x) { return x.id === d.id; })[0]; j.done = true; S.balance += j.amt; S.earnings.unshift({ t: j.rubro + ' · ' + j.cliente, d: 'Hoy · ' + j.z, a: j.amt }); render(); },
+    decline: function (d) { if (HAS_FB) return jobSt(d.id, 'rechazada', 'Solicitud rechazada.'); S.techReq = S.techReq.filter(function (x) { return x.id !== d.id; }); render(); },
+    finishJob: function (d) { if (HAS_FB) return jobSt(d.id, 'porliberar', 'Listo. Comparte el código con tu cliente.'); var j = S.techJobs.filter(function (x) { return x.id === d.id; })[0]; j.done = true; S.balance += j.amt; S.earnings.unshift({ t: j.rubro + ' · ' + j.cliente, d: 'Hoy · ' + j.z, a: j.amt }); render(); },
     withdraw: function () { toast('Retiro solicitado. Llegará en 24 h (demo).'); }
   };
   function enter() {
@@ -941,6 +954,7 @@ body .on-grad .logo { color: #fff; }
   function enterSession() {
     if (S.role === 'tecnico') {
       return db.collection('tecnicos').doc(S.uid).get().then(function (d) {
+        if (d.exists) S.techOnline = d.data().online !== false;
         go(d.exists ? { screen: 'app', tab: 'inicio' } : { screen: 'onboarding', step: 1 });
       }).catch(function (e) { go({ screen: 'auth', authErr: fbMsg(e) }); });
     }
@@ -953,22 +967,67 @@ body .on-grad .logo { color: #fff; }
     if (!HAS_FB || !S.uid) return Promise.resolve();
     var f = S.form, now = Date.now();
     return Promise.all([
-      db.collection('tecnicos').doc(S.uid).set({ name: f.name.trim(), city: f.city, zona: f.zona.trim(), rubros: f.rubros, exp: f.exp, bio: f.bio.trim(), tarifa: parseFloat(f.tarifa) || 0, h24: f.h24, radio: f.radio, estado: 'pendiente', ts: now }),
+      db.collection('tecnicos').doc(S.uid).set({ name: f.name.trim(), city: f.city, zona: f.zona.trim(), rubros: f.rubros, exp: f.exp, bio: f.bio.trim(), tarifa: parseFloat(f.tarifa) || 0, h24: f.h24, radio: f.radio, estado: 'pendiente', online: true, ts: now }),
       db.collection('tecnicos_privado').doc(S.uid).set({ phone: f.phone.trim(), cedula: f.cedula.trim(), docs: f.docs })
     ]).catch(function (e) { toast(fbMsg(e)); });
   }
+  var COLS = ['#3b4a5e', '#2a7f9e', '#7c4a1e', '#0e7490', '#4f46c7', '#be123c', '#0f766e', '#15803d'];
+  function docsOf(s) { return s.docs.map(function (d) { var x = d.data(); x.id = d.id; return x; }).sort(function (a, b) { return (b.ts || 0) - (a.ts || 0); }); }
+  function toTech(x) {
+    var rs = x.rubros && x.rubros.length ? x.rubros : ['plomeria'];
+    return { id: x.id, real: true, n: x.name || 'Técnico', r: rs[0], rs: rs, rt: 0, rv: 0, z: x.zona || x.city || '', p: x.tarifa || 0, t: x.h24 ? '24 horas' : 'Por acordar', pro: false, h24: !!x.h24, ver: x.estado === 'verificado', col: COLS[x.id.charCodeAt(0) % COLS.length] };
+  }
   function listenReqs() {
-    unsubReq = db.collection('solicitudes').where('clienteId', '==', S.uid).onSnapshot(function (s) {
-      S.requests = s.docs.map(function (d) { var x = d.data(); x.id = d.id; return x; }).sort(function (a, b) { return (b.ts || 0) - (a.ts || 0); });
+    var quiet = function () {};
+    unsubReq.push(db.collection('solicitudes').where('clienteId', '==', S.uid).onSnapshot(function (s) { S.requests = docsOf(s); render(); }, quiet));
+    unsubReq.push(db.collection('solicitudes').where('tecnicoId', '==', S.uid).onSnapshot(function (s) { S.jobsDB = docsOf(s); render(); }, quiet));
+    unsubReq.push(db.collection('tecnicos').onSnapshot(function (s) {
+      S.techDB = s.docs.map(function (d) { var x = d.data(); x.id = d.id; return x; }).filter(function (x) { return x.id !== S.uid && x.online !== false && x.name; }).map(toTech);
       render();
-    }, function () {});
+    }, quiet));
+  }
+  function jobSt(id, st, msg) {
+    db.collection('solicitudes').doc(id).update({ st: st }).then(function () { toast(msg); }).catch(function (e) { toast(fbMsg(e)); });
+  }
+  function jobView(j) {
+    return { id: j.id, cliente: j.cliente || 'Cliente', rubro: (rub(j.tr) || {}).n || 'Servicio', z: j.tz || '', d: j.desc || 'Sin descripción.', amt: j.amt, st: j.st, code: j.code, rate: j.rate || 0, ts: j.ts || 0 };
+  }
+  function techHomeFB() {
+    var first = S.user.name.split(' ')[0], jobs = S.jobsDB.map(jobView);
+    var pend = S.techOnline ? jobs.filter(function (j) { return j.st === 'pendiente'; }) : [];
+    var paid = jobs.filter(function (j) { return j.st === 'liberado'; }), rated = paid.filter(function (j) { return j.rate > 0; });
+    var total = paid.reduce(function (a, j) { return a + j.amt; }, 0);
+    var avg = rated.length ? (rated.reduce(function (a, j) { return a + j.rate; }, 0) / rated.length).toFixed(1) : '—';
+    var n = jobs.filter(function (j) { return j.st === 'trabajando' || j.st === 'porliberar' || j.st === 'liberado'; }).length;
+    return '<div class="view nopad"><div class="hdr"><div class="hdr-top"><div>' + LOGO('sm white') + '<div class="tagline" style="color:rgba(255,255,255,.8)">Panel de técnico</div></div><span class="pill glass"><i class="dot"></i>BCV Bs. ' + fmt(BCV) + '</span></div><h1>Hola, ' + esc(first) + '</h1><p>' + (S.techOnline ? 'Estás visible para clientes cercanos.' : 'Estás desconectado. No recibirás solicitudes.') + '</p></div>' +
+      '<div style="padding-inline:20px"><div class="card" style="padding:18px"><div class="row"><div><b style="font-size:18px">' + (S.techOnline ? 'Disponible ahora' : 'No disponible') + '</b><div class="muted" style="font-size:14.5px">Activa para recibir solicitudes en tu zona</div></div><button class="switch' + (S.techOnline ? ' on' : '') + '" data-act="online" role="switch" aria-checked="' + S.techOnline + '" aria-label="Disponible"></button></div></div>' +
+      '<div class="stat3" style="margin-top:14px"><div class="card stat"><b>' + usd(total).replace('.00', '') + '</b><span>Cobrado</span></div><div class="card stat"><b>' + n + '</b><span>Trabajos</span></div><div class="card stat"><b>' + avg + '</b><span>Calificación</span></div></div>' +
+      '<div class="sec-head"><h2>Solicitudes nuevas</h2><span class="count">' + pend.length + ' pendientes</span></div>' +
+      (pend.length ? pend.map(function (q) { return '<div class="card req"><div class="top"><div class="avatar" style="background:#2a7f9e">' + initials(q.cliente) + '</div><div class="tx"><b>' + esc(q.cliente) + '</b><span>' + esc(q.rubro) + (q.z ? ' · ' + esc(q.z) : '') + '</span></div><span class="price"><b>' + usd(q.amt) + '</b></span></div><p class="desc">«' + esc(q.d) + '»</p><div class="tag ok" style="margin-bottom:14px">' + ic('shieldOk') + 'Pago ya en custodia</div><div class="two"><button class="btn ghost sm" style="width:100%" data-act="decline" data-id="' + q.id + '">Rechazar</button><button class="btn sm" style="width:100%" data-act="accept" data-id="' + q.id + '">Aceptar</button></div></div>'; }).join('') : '<div class="card" style="padding:28px 20px;text-align:center"><div class="muted">' + (S.techOnline ? 'No tienes solicitudes pendientes. Cuando un cliente te contrate, aparecerá aquí.' : 'Activa tu disponibilidad para ver solicitudes.') + '</div></div>') + '</div></div>';
+  }
+  function techJobsFB() {
+    var jobs = S.jobsDB.map(jobView).filter(function (j) { return j.st === 'trabajando' || j.st === 'porliberar' || j.st === 'liberado'; });
+    return '<div class="view"><div class="page-h"><h1>Mis trabajos</h1><p>Marca como terminado y comparte el código con tu cliente.</p></div>' +
+      (jobs.length ? jobs.map(function (j) {
+        var tag = j.st === 'liberado' ? '<span class="tag ok">Pagado</span>' : j.st === 'porliberar' ? '<span class="tag">Terminado</span>' : '<span class="tag">En curso</span>';
+        var act = j.st === 'trabajando' ? '<button class="btn sm" style="width:100%" data-act="finishJob" data-id="' + j.id + '">Marcar como terminado</button>' : j.st === 'porliberar' ? '<div class="codehint" style="background:var(--teal-soft);color:var(--btn)">Código de cierre para tu cliente: <b>' + j.code + '</b></div>' : '';
+        return '<div class="card req"><div class="top"><div class="avatar" style="background:#2a7f9e">' + initials(j.cliente) + '</div><div class="tx"><b>' + esc(j.cliente) + '</b><span>' + esc(j.rubro) + (j.z ? ' · ' + esc(j.z) : '') + '</span></div>' + tag + '</div><p class="desc">«' + esc(j.d) + '»</p>' + act + '<div class="amount"><span class="muted">' + (j.st === 'liberado' ? 'Cobrado' : 'Pago en custodia') + '</span><span class="price"><b>' + usd(j.amt) + '</b></span></div></div>';
+      }).join('') : '<div class="empty"><div class="ei">' + ic('inbox') + '</div><b>Sin trabajos en curso</b><p>Acepta una solicitud desde Inicio y aparecerá aquí.</p><button class="btn" data-act="tab" data-tab="inicio">Ver solicitudes</button></div>') + '</div>' + fab();
+  }
+  function ingresosFB() {
+    var paid = S.jobsDB.map(jobView).filter(function (j) { return j.st === 'liberado'; }), total = paid.reduce(function (a, j) { return a + j.amt; }, 0);
+    return '<div class="view"><div class="page-h"><h1>Ingresos</h1><p>Lo que has ganado con Fixer.</p></div>' +
+      '<div class="bal"><div class="l">Total cobrado</div><div class="v">' + usd(total) + '</div><div class="s">≈ Bs. ' + fmt(total * BCV) + '</div></div>' +
+      '<div class="sec-head"><h2>Movimientos</h2></div>' +
+      (paid.length ? '<div class="card" style="padding:4px 18px">' + paid.map(function (e) { return '<div class="tx-row"><div class="ic">' + ic('wallet') + '</div><div class="tx"><b>' + esc(e.rubro) + ' · ' + esc(e.cliente) + '</b><span>' + new Date(e.ts).toLocaleDateString('es-VE') + '</span></div><span class="am">+' + usd(e.amt) + '</span></div>'; }).join('') + '</div>' : '<div class="card" style="padding:28px 20px;text-align:center"><div class="muted">Aún no has cobrado ningún trabajo. Se paga cuando tu cliente ingresa el código de cierre.</div></div>') +
+      '</div>' + fab();
   }
   if (HAS_FB) {
     fbAuth.onAuthStateChanged(function (u) {
-      if (unsubReq) { unsubReq(); unsubReq = null; }
+      unsubReq.forEach(function (f) { f(); }); unsubReq = [];
       if (!u) {
         var out = S.screen === 'loading' ? 'landing' : (S.screen === 'app' || S.screen === 'onboarding' || S.screen === 'done') ? 'auth' : S.screen;
-        return go({ uid: null, requests: [], sheet: null, screen: out });
+        return go({ uid: null, requests: [], techDB: [], jobsDB: [], sheet: null, screen: out });
       }
       S.uid = u.uid;
       var ref = db.collection('users').doc(u.uid);
@@ -1019,7 +1078,7 @@ body .on-grad .logo { color: #fff; }
     } else if (e.target.id === 'homeSearch') {
       go({ tab: 'servicios', q: document.getElementById('hq').value, filterRubro: null });
     } else if (e.target.id === 'chatForm') {
-      var i = document.getElementById('chatIn'); sendChat(i.value); i.value = ''; i.focus();
+      var i = document.getElementById('chatIn'), txt = i.value; i.value = ''; sendChat(txt); document.getElementById('chatIn').focus();
     }
   });
   app.addEventListener('input', function (e) {
