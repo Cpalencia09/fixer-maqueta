@@ -1,12 +1,11 @@
-// Pega aquí la configuración web de tu proyecto Firebase
-// (Consola de Firebase → Configuración del proyecto → Tus apps → Web → firebaseConfig).
-// Estos valores son públicos por diseño. La seguridad la dan las reglas de Firestore.
-// Mientras apiKey empiece por "TU_", la app funciona en modo demo, sin servidor.
+// Configuración web del proyecto Firebase "fixer-cff50".
+// Estos valores son públicos por diseño. La seguridad la dan las reglas de Firestore (firestore.rules).
+// Si apiKey empieza por "TU_", la app funciona en modo demo, sin servidor.
 window.FIREBASE_CONFIG = {
-  apiKey: "TU_API_KEY",
-  authDomain: "TU_PROYECTO.firebaseapp.com",
-  projectId: "TU_PROYECTO",
-  storageBucket: "TU_PROYECTO.appspot.com",
-  messagingSenderId: "TU_SENDER_ID",
-  appId: "TU_APP_ID"
+  apiKey: "AIzaSyAI0mS0UaCgPQE-GkAFMhz_WlgrRY1AWtc",
+  authDomain: "fixer-cff50.firebaseapp.com",
+  projectId: "fixer-cff50",
+  storageBucket: "fixer-cff50.firebasestorage.app",
+  messagingSenderId: "913012930754",
+  appId: "1:913012930754:web:fc9966d5f26be8304a635b"
 };
