@@ -539,8 +539,8 @@ body .on-grad .logo { color: #fff; }
   /* ---------- Firebase (si no hay configuración, la app funciona en modo demo) ---------- */
   var CFG = window.FIREBASE_CONFIG;
   var HAS_FB = !!(CFG && CFG.apiKey && CFG.apiKey.indexOf('TU_') !== 0 && window.firebase);
-  var auth, db, unsubReq, pendingName = null;
-  if (HAS_FB) { firebase.initializeApp(CFG); auth = firebase.auth(); db = firebase.firestore(); }
+  var fbAuth, db, unsubReq, pendingName = null;
+  if (HAS_FB) { firebase.initializeApp(CFG); fbAuth = firebase.auth(); db = firebase.firestore(); }
   var FB_ERR = {
     'auth/invalid-email': 'El correo no es válido.',
     'auth/user-not-found': 'No existe una cuenta con ese correo.',
@@ -857,13 +857,13 @@ body .on-grad .logo { color: #fff; }
     social: function (d, el) {
       if (!HAS_FB) return enter();
       if (el.classList.contains('apple')) return toast('Apple estará disponible más adelante.');
-      auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(function (e) { go({ authErr: fbMsg(e) }); });
+      fbAuth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(function (e) { go({ authErr: fbMsg(e) }); });
     },
     forgot: function () {
       if (!HAS_FB) return toast('Te enviaremos un enlace a tu correo (demo).');
       var m = (document.getElementById('aMail') || {}).value;
       if (!m || !m.trim()) return go({ authErr: 'Escribe tu correo y vuelve a pulsar «¿Olvidaste tu contraseña?».' });
-      auth.sendPasswordResetEmail(m.trim()).then(function () { toast('Te enviamos un enlace a tu correo.'); }).catch(function (e) { go({ authErr: fbMsg(e) }); });
+      fbAuth.sendPasswordResetEmail(m.trim()).then(function () { toast('Te enviamos un enlace a tu correo.'); }).catch(function (e) { go({ authErr: fbMsg(e) }); });
     },
     tab: function (d) {
       if (d.tab === 'soporte') return go({ sheet: { t: 'chat' } });
@@ -899,13 +899,13 @@ body .on-grad .logo { color: #fff; }
     },
     rate: function (d) { var q = S.requests.filter(function (x) { return x.id === d.id; })[0]; q.rate = +d.n; saveReq(q); render(); },
     logout: function () {
-      if (HAS_FB) auth.signOut();
+      if (HAS_FB) fbAuth.signOut();
       go({ screen: 'landing', role: null, authMode: 'login', tab: 'inicio', sheet: null });
     },
     delAcc: function () { go({ sheet: { t: 'del' } }); },
     delConfirm: function () {
       if (!HAS_FB || !S.uid) { S.requests = []; go({ sheet: null, screen: 'landing', role: null, tab: 'inicio' }); return toast('Cuenta eliminada (demo).'); }
-      var u = auth.currentUser, id = S.uid;
+      var u = fbAuth.currentUser, id = S.uid;
       Promise.all(S.requests.map(function (q) { return db.collection('solicitudes').doc(q.id).delete(); }).concat([
         db.collection('users').doc(id).delete(), db.collection('tecnicos').doc(id).delete(), db.collection('tecnicos_privado').doc(id).delete()
       ])).then(function () { return u.delete(); }).then(function () {
@@ -964,7 +964,7 @@ body .on-grad .logo { color: #fff; }
     }, function () {});
   }
   if (HAS_FB) {
-    auth.onAuthStateChanged(function (u) {
+    fbAuth.onAuthStateChanged(function (u) {
       if (unsubReq) { unsubReq(); unsubReq = null; }
       if (!u) {
         var out = S.screen === 'loading' ? 'landing' : (S.screen === 'app' || S.screen === 'onboarding' || S.screen === 'done') ? 'auth' : S.screen;
@@ -1012,9 +1012,9 @@ body .on-grad .logo { color: #fff; }
       if (S.authMode === 'register') {
         if (!(n && n.value.trim())) return go({ authErr: 'Escribe tu nombre completo.' });
         pendingName = n.value.trim();
-        auth.createUserWithEmailAndPassword(m, p).catch(function (er) { pendingName = null; go({ authErr: fbMsg(er) }); });
+        fbAuth.createUserWithEmailAndPassword(m, p).catch(function (er) { pendingName = null; go({ authErr: fbMsg(er) }); });
       } else {
-        auth.signInWithEmailAndPassword(m, p).catch(function (er) { go({ authErr: fbMsg(er) }); });
+        fbAuth.signInWithEmailAndPassword(m, p).catch(function (er) { go({ authErr: fbMsg(er) }); });
       }
     } else if (e.target.id === 'homeSearch') {
       go({ tab: 'servicios', q: document.getElementById('hq').value, filterRubro: null });
