@@ -1,0 +1,30 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Perfil de cada usuario: solo lo ve y edita su dueño.
+    match /users/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // Perfil público del técnico: lo ve cualquier usuario con sesión, lo edita su dueño.
+    match /tecnicos/{uid} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // Datos sensibles del técnico (teléfono, cédula, documentos): solo su dueño.
+    match /tecnicos_privado/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // Solicitudes: cada cliente ve y modifica solo las suyas.
+    match /solicitudes/{id} {
+      allow create: if request.auth != null && request.resource.data.clienteId == request.auth.uid;
+      allow read, delete: if request.auth != null && resource.data.clienteId == request.auth.uid;
+      allow update: if request.auth != null
+                    && resource.data.clienteId == request.auth.uid
+                    && request.resource.data.clienteId == resource.data.clienteId;
+    }
+  }
+}
