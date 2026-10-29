@@ -2,20 +2,40 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // Administrador: existe un documento admins/{su uid} (se crea a mano en la consola).
+    function isAdmin() {
+      return request.auth != null
+          && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    // Cada usuario solo puede comprobar si él mismo es admin. Nadie escribe aquí desde la app.
+    match /admins/{uid} {
+      allow get: if request.auth != null && request.auth.uid == uid;
+    }
+
     // Perfil de cada usuario: solo lo ve y edita su dueño.
     match /users/{uid} {
       allow read, write: if request.auth != null && request.auth.uid == uid;
     }
 
-    // Perfil público del técnico: lo ve cualquier usuario con sesión, lo edita su dueño.
+    // Perfil público del técnico: lo ve cualquier usuario con sesión.
+    // El técnico lo crea como "pendiente" y no puede cambiar su propio estado.
+    // Solo un administrador puede verificarlo o rechazarlo.
     match /tecnicos/{uid} {
       allow read: if request.auth != null;
-      allow write: if request.auth != null && request.auth.uid == uid;
+      allow create: if request.auth != null && request.auth.uid == uid
+                    && request.resource.data.estado == 'pendiente';
+      allow update: if request.auth != null && request.auth.uid == uid
+                    && request.resource.data.estado == resource.data.estado;
+      allow update: if isAdmin()
+                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['estado']);
+      allow delete: if request.auth != null && request.auth.uid == uid;
     }
 
-    // Datos sensibles del técnico (teléfono, cédula, documentos): solo su dueño.
+    // Datos sensibles del técnico (teléfono, cédula, documentos): su dueño y los administradores.
     match /tecnicos_privado/{uid} {
       allow read, write: if request.auth != null && request.auth.uid == uid;
+      allow read: if isAdmin();
     }
 
     // Solicitudes: las ve el cliente que la creó y el técnico contratado.

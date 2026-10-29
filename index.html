@@ -86,6 +86,7 @@ body .on-grad .logo { color: #fff; }
 /* pills / chips */
 .pill { display: inline-flex; align-items: center; gap: 7px; padding: 8px 14px; border-radius: 99px; background: var(--teal-soft); font-weight: 700; font-size: 14px; color: var(--btn); }
 .pill .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); }
+.pill .dot.off { background: #e0a526; }
 .pill.white { background: #fff; color: #1d3b63; }
 .pill.glass { background: rgba(255,255,255,.92); color: #1d3b63; }
 .tag { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 99px; font-size: 13px; font-weight: 700; background: var(--teal-soft); color: var(--btn); }
@@ -478,7 +479,7 @@ body .on-grad .logo { color: #fff; }
   var LOGO = function (cls) { return '<span class="logo ' + (cls || '') + '">Fıxer' + ic('wrench') + '</span>'; };
 
   /* ---------- Datos simulados ---------- */
-  var BCV = 887.30;
+  var BCV = 888.89, RATE = { live: false, fecha: '' };   /* tasa de referencia; loadRate() la actualiza desde la API */
   var RUBROS = [
     { id: 'plomeria', n: 'Plomería', g: 't', ic: 'drop', c: '#0ea5e9', d: 'Reparación de fugas, destape de cañerías, instalación de sanitarios y mantenimiento de sistemas de agua.' },
     { id: 'refrigeracion', n: 'Refrigeración', g: 't', ic: 'snow', c: '#0284c7', d: 'Mantenimiento y reparación de aires acondicionados, neveras y congeladores residenciales y comerciales.' },
@@ -520,7 +521,7 @@ body .on-grad .logo { color: #fff; }
     [/código|codigo|cierre/, 'El código de cierre son 4 dígitos que recibes en la sección Solicitudes cuando el técnico termina. Con él liberas el pago.'],
     [/técnico|tecnico|verific/, 'Todos los técnicos pasan por verificación de identidad (KYC) antes de recibir solicitudes. Puedes ver su calificación y reseñas en su perfil.'],
     [/rubro|servicio|plomer|electric/, 'Tenemos 14 rubros: plomería, refrigeración, electricidad, mecánica, carpintería, herrería y servicios del hogar. Explóralos en la pestaña Servicios.'],
-    [/tasa|bcv|bs|dólar|dolar/, 'Usamos la tasa BCV del día (Bs. ' + fmt(BCV) + '). El conversor del Inicio te ayuda a calcular montos en USD y bolívares.'],
+    [/tasa|bcv|bs|dólar|dolar/, function () { return 'Usamos la tasa oficial del BCV (hoy Bs. ' + fmt(BCV) + '). El conversor del Inicio te ayuda a calcular montos en USD y bolívares.'; }],
     [/hola|buenas|hey/, '¡Hola! Cuéntame qué necesitas y te ayudo a encontrar al técnico ideal.']
   ];
 
@@ -529,6 +530,10 @@ body .on-grad .logo { color: #fff; }
     var s = (Math.round(n * 100) / 100).toFixed(2).split('.');
     s[0] = s[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
     return s[0] + ',' + s[1];
+  }
+  function ratePill(cls) {
+    var tip = RATE.live ? 'Tasa oficial BCV' + (RATE.fecha ? ' · ' + RATE.fecha.slice(0, 10) : '') : 'No se pudo actualizar. Mostrando la última tasa guardada.';
+    return '<span class="pill ' + cls + '" title="' + tip + '"><i class="dot' + (RATE.live ? '' : ' off') + '"></i>BCV Bs. ' + fmt(BCV) + '</span>';
   }
   function usd(n) { return '$' + Number(n).toFixed(2); }
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
@@ -562,7 +567,7 @@ body .on-grad .logo { color: #fff; }
 
   /* ---------- Estado ---------- */
   var S = {
-    screen: HAS_FB ? 'loading' : 'landing', uid: null, role: null, techDB: [], jobsDB: [], tab: 'inicio', step: 1, authMode: 'login', authErr: '',
+    screen: HAS_FB ? 'loading' : 'landing', uid: null, role: null, techDB: [], jobsDB: [], adminTechs: [], priv: {}, isAdmin: false, adminF: 'pendiente', tab: 'inicio', step: 1, authMode: 'login', authErr: '',
     user: { name: 'Carlos Palencia', email: 'elgramu702@gmail.com' },
     form: { name: 'Carlos Palencia', phone: '', cedula: '', city: '', zona: '', rubros: [], exp: '', bio: '', docs: { ced: false, selfie: false, cert: false }, tarifa: '', h24: false, radio: '10' },
     q: '', filterRubro: null, sheet: null, toast: '', mapZoom: 1, gps: false, convSwap: false, usdVal: '', bsVal: '',
@@ -599,7 +604,7 @@ body .on-grad .logo { color: #fff; }
 
   /* ---------- Pantallas ---------- */
   function landing() {
-    return '<div class="view"><div class="landing-top"><div>' + LOGO('lg') + '<div class="tagline">Tus técnicos cercanos</div></div><span class="pill"><i class="dot"></i>BCV Bs. ' + fmt(BCV) + '</span></div>' +
+    return '<div class="view"><div class="landing-top"><div>' + LOGO('lg') + '<div class="tagline">Tus técnicos cercanos</div></div>' + ratePill('') + '</div>' +
       '<div class="hero"><span class="pill" style="margin-top:44px;border-radius:14px;letter-spacing:.1em;font-size:14px;text-transform:uppercase;color:var(--teal)">' + ic('zap') + 'Técnicos cercanos 24h</span>' +
       '<h1>Tu hogar y negocio en buenas manos, <span class="teal">a un solo tap.</span></h1>' +
       '<p class="lead">Técnicos verificados cerca de ti, con pago en custodia y código de cierre. Resuelve plomería, electricidad, herrería y más.</p></div>' +
@@ -693,7 +698,7 @@ body .on-grad .logo { color: #fff; }
   function homeClient() {
     var first = S.user.name.split(' ')[0];
     var top = RUBROS.slice(0, 8);
-    return '<div class="view nopad"><div class="hdr"><div class="hdr-top"><div>' + LOGO('sm white') + '<div class="tagline" style="color:rgba(255,255,255,.8)">Tus técnicos cercanos</div></div><div class="rates"><button class="pill white" data-act="toast" data-m="Moneda principal: USD">$ <span style="opacity:.5">/</span> Bs</button><span class="pill glass"><i class="dot"></i>BCV Bs. ' + fmt(BCV) + '</span></div></div>' +
+    return '<div class="view nopad"><div class="hdr"><div class="hdr-top"><div>' + LOGO('sm white') + '<div class="tagline" style="color:rgba(255,255,255,.8)">Tus técnicos cercanos</div></div><div class="rates"><button class="pill white" data-act="toast" data-m="Moneda principal: USD">$ <span style="opacity:.5">/</span> Bs</button>' + ratePill('glass') + '</div></div>' +
       '<h1>Hola, ' + esc(first) + '</h1><p>¿Qué necesitas resolver hoy?</p>' +
       '<form class="searchbar" id="homeSearch"><span class="sic">' + ic('search') + '</span><input id="hq" placeholder="Busca tu servicio: Jardinero, Electricista..." aria-label="Buscar servicio"><button type="submit" aria-label="Buscar">' + ic('arrowR') + '</button></form></div>' +
       '<div style="padding-inline:20px"><div class="trust"><div class="badge3">' + ic('badge') + 'Verificados</div><div class="badge3">' + ic('shieldOk') + 'Pago seguro</div><div class="badge3">' + ic('zap') + 'Respuesta rápida</div></div>' +
@@ -708,7 +713,7 @@ body .on-grad .logo { color: #fff; }
   function converter() {
     var u = '<div class="lbl">Dólares (USD)</div><div class="input"><span class="pre">$</span><input id="cUsd" inputmode="decimal" placeholder="0.00" value="' + esc(S.usdVal) + '" aria-label="Dólares"></div>';
     var b = '<div class="lbl">Bolívares (Bs)</div><div class="input"><span class="pre">Bs.</span><input id="cBs" inputmode="decimal" placeholder="0,00" value="' + esc(S.bsVal) + '" aria-label="Bolívares"></div>';
-    return '<div class="card conv"><div class="top"><div><h3>Conversor USD ⇔ Bs</h3><div class="tasa">Tasa BCV: <b>Bs. ' + String(BCV.toFixed(1)).replace('.', ',') + '</b></div></div><button class="sw" data-act="convSwap" aria-label="Invertir">' + ic('swap') + '</button></div>' + (S.convSwap ? b + u : u + b) + '</div>';
+    return '<div class="card conv"><div class="top"><div><h3>Conversor USD ⇔ Bs</h3><div class="tasa">Tasa BCV: <b>Bs. ' + fmt(BCV) + '</b></div></div><button class="sw" data-act="convSwap" aria-label="Invertir">' + ic('swap') + '</button></div>' + (S.convSwap ? b + u : u + b) + '</div>';
   }
 
   function servicios() {
@@ -761,7 +766,7 @@ body .on-grad .logo { color: #fff; }
     return '<div class="view"><div class="page-h"><h1>Perfil</h1></div>' +
       '<div class="card prof"><div class="pa">' + initials(u.name) + '</div><div style="min-width:0"><b>' + esc(u.name) + ic('badge') + '</b><div class="em">' + esc(u.email) + '</div><span class="tag">' + (tec ? 'Técnico' : 'Cliente') + '</span></div></div>' +
       '<div class="card menu"><button class="mi big" data-act="home"><div class="ic">' + ic('sync') + '</div><div class="tx">Cambiar modalidad<span>Volver a la pantalla de selección de rol</span></div>' + ic('chevR', 'chev') + '</button></div>' +
-      '<div class="card menu"><button class="mi" data-act="kyc">' + ic('shieldOk', '') + '<span class="tx" style="color:var(--ink)">Verificación KYC</span><span class="ok">Verificado</span>' + ic('chevR', 'chev') + '</button>' +
+      (S.isAdmin ? '<div class="card menu"><button class="mi" data-act="admin">' + ic('award') + '<span class="tx">Panel de administración</span>' + ic('chevR', 'chev') + '</button></div>' : '') + '<div class="card menu"><button class="mi" data-act="kyc">' + ic('shieldOk', '') + '<span class="tx" style="color:var(--ink)">Verificación KYC</span><span class="ok">Verificado</span>' + ic('chevR', 'chev') + '</button>' +
       '<button class="mi" data-act="legal" data-k="priv">' + ic('shield') + '<span class="tx">Política de privacidad</span>' + ic('chevR', 'chev') + '</button>' +
       '<button class="mi" data-act="legal" data-k="terms">' + ic('file') + '<span class="tx">Términos y condiciones</span>' + ic('chevR', 'chev') + '</button>' +
       '<button class="mi" data-act="chat">' + ic('help') + '<span class="tx">Ayuda y soporte</span>' + ic('chevR', 'chev') + '</button></div>' +
@@ -773,7 +778,7 @@ body .on-grad .logo { color: #fff; }
   /* técnico */
   function techHome() {
     var first = S.user.name.split(' ')[0];
-    return '<div class="view nopad"><div class="hdr"><div class="hdr-top"><div>' + LOGO('sm white') + '<div class="tagline" style="color:rgba(255,255,255,.8)">Panel de técnico</div></div><span class="pill glass"><i class="dot"></i>BCV Bs. ' + fmt(BCV) + '</span></div><h1>Hola, ' + esc(first) + '</h1><p>' + (S.techOnline ? 'Estás visible para clientes cercanos.' : 'Estás desconectado. No recibirás solicitudes.') + '</p></div>' +
+    return '<div class="view nopad"><div class="hdr"><div class="hdr-top"><div>' + LOGO('sm white') + '<div class="tagline" style="color:rgba(255,255,255,.8)">Panel de técnico</div></div>' + ratePill('glass') + '</div><h1>Hola, ' + esc(first) + '</h1><p>' + (S.techOnline ? 'Estás visible para clientes cercanos.' : 'Estás desconectado. No recibirás solicitudes.') + '</p></div>' +
       '<div style="padding-inline:20px"><div class="card" style="padding:18px"><div class="row"><div><b style="font-size:18px">' + (S.techOnline ? 'Disponible ahora' : 'No disponible') + '</b><div class="muted" style="font-size:14.5px">Activa para recibir solicitudes en tu zona</div></div><button class="switch' + (S.techOnline ? ' on' : '') + '" data-act="online" role="switch" aria-checked="' + S.techOnline + '" aria-label="Disponible"></button></div></div>' +
       '<div class="stat3" style="margin-top:14px"><div class="card stat"><b>' + usd(S.balance - 62).replace('.00', '') + '</b><span>Hoy</span></div><div class="card stat"><b>' + (3 + S.techJobs.length) + '</b><span>Trabajos</span></div><div class="card stat"><b>4.9</b><span>Calificación</span></div></div>' +
       '<div class="sec-head"><h2>Solicitudes nuevas</h2><span class="count">' + (S.techOnline ? S.techReq.length : 0) + ' pendientes</span></div>' +
@@ -834,12 +839,12 @@ body .on-grad .logo { color: #fff; }
     else if (S.screen === 'done') h = obDone();
     else if (S.role === 'cliente') {
       var items = [['inicio', 'Inicio', 'home'], ['servicios', 'Servicios', 'wrench'], ['solicitudes', 'Solicitudes', 'inbox'], ['soporte', 'Soporte', 'headset'], ['perfil', 'Perfil', 'user']];
-      var v = S.tab === 'inicio' ? homeClient() : S.tab === 'servicios' ? (S.filterRubro ? rubroList() : servicios()) : S.tab === 'solicitudes' ? solicitudes() : perfil();
+      var v = S.tab === 'inicio' ? homeClient() : S.tab === 'servicios' ? (S.filterRubro ? rubroList() : servicios()) : S.tab === 'solicitudes' ? solicitudes() : S.tab === 'admin' ? adminView() : perfil();
       h = v + nav(items);
     } else {
       var it2 = [['inicio', 'Inicio', 'home'], ['solicitudes', 'Solicitudes', 'inbox'], ['ingresos', 'Ingresos', 'grid'], ['perfil', 'Perfil', 'user']];
       var fbT = HAS_FB && S.uid;
-      h = (S.tab === 'inicio' ? (fbT ? techHomeFB() : techHome()) : S.tab === 'solicitudes' ? (fbT ? techJobsFB() : techJobs()) : S.tab === 'ingresos' ? (fbT ? ingresosFB() : ingresos()) : perfil()) + nav(it2);
+      h = (S.tab === 'inicio' ? (fbT ? techHomeFB() : techHome()) : S.tab === 'solicitudes' ? (fbT ? techJobsFB() : techJobs()) : S.tab === 'ingresos' ? (fbT ? ingresosFB() : ingresos()) : S.tab === 'admin' ? adminView() : perfil()) + nav(it2);
     }
     var keep = {};
     app.querySelectorAll('input[id],textarea[id]').forEach(function (e0) { if (e0.id !== 'chatIn') keep[e0.id] = e0.value; });
@@ -931,6 +936,13 @@ body .on-grad .logo { color: #fff; }
     h24: function () { S.form.h24 = !S.form.h24; render(); },
     enterTech: function () { go({ screen: 'app', tab: 'inicio' }); },
     /* técnico */
+    admin: function () { go({ tab: 'admin' }); },
+    adminF: function (d) { go({ adminF: d.f }); },
+    setEstado: function (d) {
+      db.collection('tecnicos').doc(d.id).update({ estado: d.st }).then(function () {
+        toast(d.st === 'verificado' ? 'Técnico verificado.' : d.st === 'rechazado' ? 'Técnico rechazado.' : 'Técnico devuelto a pendientes.');
+      }).catch(function (e) { toast(fbMsg(e)); });
+    },
     online: function () {
       go({ techOnline: !S.techOnline });
       if (HAS_FB && S.uid) db.collection('tecnicos').doc(S.uid).update({ online: S.techOnline }).catch(function () {});
@@ -982,9 +994,38 @@ body .on-grad .logo { color: #fff; }
     unsubReq.push(db.collection('solicitudes').where('clienteId', '==', S.uid).onSnapshot(function (s) { S.requests = docsOf(s); render(); }, quiet));
     unsubReq.push(db.collection('solicitudes').where('tecnicoId', '==', S.uid).onSnapshot(function (s) { S.jobsDB = docsOf(s); render(); }, quiet));
     unsubReq.push(db.collection('tecnicos').onSnapshot(function (s) {
-      S.techDB = s.docs.map(function (d) { var x = d.data(); x.id = d.id; return x; }).filter(function (x) { return x.id !== S.uid && x.online !== false && x.name; }).map(toTech);
+      var all = s.docs.map(function (d) { var x = d.data(); x.id = d.id; return x; });
+      if (S.isAdmin) { S.adminTechs = all; loadPriv(); }
+      S.techDB = all.filter(function (x) { return x.id !== S.uid && x.online !== false && x.name && x.estado !== 'rechazado'; }).map(toTech);
       render();
     }, quiet));
+  }
+  /* Administración: verificar técnicos */
+  function loadPriv() {
+    S.adminTechs.forEach(function (x) {
+      if (S.priv[x.id] !== undefined) return;
+      S.priv[x.id] = null;
+      db.collection('tecnicos_privado').doc(x.id).get().then(function (d) { S.priv[x.id] = d.exists ? d.data() : {}; render(); }).catch(function () { S.priv[x.id] = {}; });
+    });
+  }
+  var ESTADO = { pendiente: 'Pendiente', verificado: 'Verificado', rechazado: 'Rechazado' };
+  function adminView() {
+    var f = S.adminF, cnt = { pendiente: 0, verificado: 0, rechazado: 0 };
+    S.adminTechs.forEach(function (x) { cnt[x.estado || 'pendiente']++; });
+    var list = S.adminTechs.filter(function (x) { return (x.estado || 'pendiente') === f; }).sort(function (a, b) { return (b.ts || 0) - (a.ts || 0); });
+    return '<div class="view"><div class="page-h" style="padding-top:36px"><button class="chip" data-act="tab" data-tab="perfil" style="margin-bottom:18px">← Perfil</button><h1>Administración</h1><p>Revisa los datos de cada técnico antes de verificarlo.</p></div>' +
+      '<div class="chips" style="margin-bottom:20px">' + ['pendiente', 'verificado', 'rechazado'].map(function (k) {
+        return '<button class="chip' + (f === k ? ' on' : '') + '" data-act="adminF" data-f="' + k + '">' + ESTADO[k] + 's · ' + cnt[k] + '</button>';
+      }).join('') + '</div>' +
+      (list.length ? list.map(function (x) {
+        var rs = (x.rubros || []).map(function (i) { return (rub(i) || {}).n; }).filter(Boolean).join(', ') || 'Sin rubro', p = S.priv[x.id], st = x.estado || 'pendiente';
+        var priv = p === null || p === undefined ? '<div class="muted" style="font-size:14px;margin:10px 0">Cargando datos privados…</div>' :
+          '<div class="codehint" style="background:var(--bg);color:var(--ink);border:1px solid var(--line)">Tel: <b style="letter-spacing:0">' + esc(p.phone || '—') + '</b> · Cédula/RIF: <b style="letter-spacing:0">' + esc(p.cedula || '—') + '</b><br>Documentos: ' + ((p.docs && p.docs.ced) ? '✓ Cédula' : '✗ Cédula') + ' · ' + ((p.docs && p.docs.selfie) ? '✓ Selfie' : '✗ Selfie') + ' · ' + ((p.docs && p.docs.cert) ? '✓ Certificado' : '— Certificado') + '</div>';
+        var btns = st === 'verificado' ? '<button class="btn ghost sm" style="width:100%" data-act="setEstado" data-id="' + x.id + '" data-st="pendiente">Quitar verificación</button>' :
+          '<div class="two"><button class="btn ghost sm" style="width:100%" data-act="setEstado" data-id="' + x.id + '" data-st="' + (st === 'rechazado' ? 'pendiente' : 'rechazado') + '">' + (st === 'rechazado' ? 'Reabrir' : 'Rechazar') + '</button><button class="btn sm" style="width:100%" data-act="setEstado" data-id="' + x.id + '" data-st="verificado">Verificar</button></div>';
+        return '<div class="card req"><div class="top"><div class="avatar" style="background:' + COLS[x.id.charCodeAt(0) % COLS.length] + '">' + initials(x.name || 'T') + '</div><div class="tx"><b>' + esc(x.name || 'Sin nombre') + '</b><span>' + esc([x.zona, x.city].filter(Boolean).join(', ')) + ' · ' + esc(rs) + '</span></div><span class="tag ' + (st === 'verificado' ? 'ok' : st === 'rechazado' ? 'danger' : '') + '">' + ESTADO[st] + '</span></div>' +
+          '<p class="desc">' + esc(x.exp || 'Experiencia sin indicar') + ' · ' + usd(x.tarifa || 0) + ' por visita' + (x.bio ? ' · «' + esc(x.bio) + '»' : '') + '</p>' + priv + '<div style="margin-top:14px">' + btns + '</div></div>';
+      }).join('') : '<div class="empty"><div class="ei">' + ic('badge') + '</div><b>Nada por aquí</b><p>No hay técnicos en esta lista.</p></div>') + '</div>';
   }
   function jobSt(id, st, msg) {
     db.collection('solicitudes').doc(id).update({ st: st }).then(function () { toast(msg); }).catch(function (e) { toast(fbMsg(e)); });
@@ -999,7 +1040,7 @@ body .on-grad .logo { color: #fff; }
     var total = paid.reduce(function (a, j) { return a + j.amt; }, 0);
     var avg = rated.length ? (rated.reduce(function (a, j) { return a + j.rate; }, 0) / rated.length).toFixed(1) : '—';
     var n = jobs.filter(function (j) { return j.st === 'trabajando' || j.st === 'porliberar' || j.st === 'liberado'; }).length;
-    return '<div class="view nopad"><div class="hdr"><div class="hdr-top"><div>' + LOGO('sm white') + '<div class="tagline" style="color:rgba(255,255,255,.8)">Panel de técnico</div></div><span class="pill glass"><i class="dot"></i>BCV Bs. ' + fmt(BCV) + '</span></div><h1>Hola, ' + esc(first) + '</h1><p>' + (S.techOnline ? 'Estás visible para clientes cercanos.' : 'Estás desconectado. No recibirás solicitudes.') + '</p></div>' +
+    return '<div class="view nopad"><div class="hdr"><div class="hdr-top"><div>' + LOGO('sm white') + '<div class="tagline" style="color:rgba(255,255,255,.8)">Panel de técnico</div></div>' + ratePill('glass') + '</div><h1>Hola, ' + esc(first) + '</h1><p>' + (S.techOnline ? 'Estás visible para clientes cercanos.' : 'Estás desconectado. No recibirás solicitudes.') + '</p></div>' +
       '<div style="padding-inline:20px"><div class="card" style="padding:18px"><div class="row"><div><b style="font-size:18px">' + (S.techOnline ? 'Disponible ahora' : 'No disponible') + '</b><div class="muted" style="font-size:14.5px">Activa para recibir solicitudes en tu zona</div></div><button class="switch' + (S.techOnline ? ' on' : '') + '" data-act="online" role="switch" aria-checked="' + S.techOnline + '" aria-label="Disponible"></button></div></div>' +
       '<div class="stat3" style="margin-top:14px"><div class="card stat"><b>' + usd(total).replace('.00', '') + '</b><span>Cobrado</span></div><div class="card stat"><b>' + n + '</b><span>Trabajos</span></div><div class="card stat"><b>' + avg + '</b><span>Calificación</span></div></div>' +
       '<div class="sec-head"><h2>Solicitudes nuevas</h2><span class="count">' + pend.length + ' pendientes</span></div>' +
@@ -1027,7 +1068,7 @@ body .on-grad .logo { color: #fff; }
       unsubReq.forEach(function (f) { f(); }); unsubReq = [];
       if (!u) {
         var out = S.screen === 'loading' ? 'landing' : (S.screen === 'app' || S.screen === 'onboarding' || S.screen === 'done') ? 'auth' : S.screen;
-        return go({ uid: null, requests: [], techDB: [], jobsDB: [], sheet: null, screen: out });
+        return go({ uid: null, requests: [], techDB: [], jobsDB: [], adminTechs: [], priv: {}, isAdmin: false, sheet: null, screen: out });
       }
       S.uid = u.uid;
       var ref = db.collection('users').doc(u.uid);
@@ -1039,6 +1080,8 @@ body .on-grad .logo { color: #fff; }
         if (data.role !== role) ref.update({ role: role });
         return [name, role];
       }).then(function (r) {
+        return db.collection('admins').doc(u.uid).get().then(function (a) { S.isAdmin = a.exists; return r; }, function () { S.isAdmin = false; return r; });
+      }).then(function (r) {
         S.user = { name: r[0], email: u.email }; S.form.name = r[0]; S.role = r[1];
         listenReqs(); enterSession();
       }).catch(function (e) { go({ screen: 'auth', authErr: fbMsg(e) }); });
@@ -1048,7 +1091,7 @@ body .on-grad .logo { color: #fff; }
     text = text.trim(); if (!text) return;
     S.chat.push({ r: 'u', x: text }); render();
     var n = norm(text), reply = 'Gracias por escribirnos. Un agente revisará tu consulta y te responderá en breve. Mientras tanto, puedes explorar los rubros en la pestaña Servicios.';
-    BOT.some(function (b) { if (b[0].test(n)) { reply = b[1]; return true; } });
+    BOT.some(function (b) { if (b[0].test(n)) { reply = typeof b[1] === 'function' ? b[1]() : b[1]; return true; } });
     setTimeout(function () { S.chat.push({ r: 'b', x: reply }); if (S.sheet && S.sheet.t === 'chat') render(); }, 700);
   }
 
@@ -1096,6 +1139,27 @@ body .on-grad .logo { color: #fff; }
     else if (id === 'chatIn') { document.getElementById('chatSend').classList.toggle('on', !!el.value.trim()); }
   });
   app.addEventListener('change', function (e) { var el = e.target; if (el.dataset && el.dataset.f) { S.form[el.dataset.f] = el.value; var b = document.getElementById('obNext'); if (b) b.disabled = !obValid(); } });
+
+  /* Tasa BCV en vivo (DolarApi Venezuela). Si falla, usa la última tasa guardada en el navegador. */
+  function loadRate() {
+    var KEY = 'fixer_bcv';
+    try { var c = JSON.parse(localStorage.getItem(KEY) || 'null'); if (c && c.v > 0 && !RATE.live) { BCV = c.v; RATE.fecha = c.fecha || ''; } } catch (e) {}
+    var ctl = window.AbortController ? new AbortController() : null, to = setTimeout(function () { if (ctl) ctl.abort(); }, 8000);
+    fetch('https://ve.dolarapi.com/v1/dolares/oficial', ctl ? { signal: ctl.signal } : {}).then(function (r) {
+      if (!r.ok) throw new Error('http'); return r.json();
+    }).then(function (j) {
+      var v = Number(j.promedio); if (!(v > 0)) throw new Error('tasa');
+      try { localStorage.setItem(KEY, JSON.stringify({ v: v, fecha: j.fechaActualizacion })); } catch (e) {}
+      setRate(v, j.fechaActualizacion || '', true);
+    }).catch(function () { setRate(BCV, RATE.fecha, false); }).then(function () { clearTimeout(to); });
+  }
+  function setRate(v, fecha, live) {
+    var changed = v !== BCV || live !== RATE.live;
+    BCV = v; RATE = { live: live, fecha: fecha };
+    if (S.usdVal) { var u = parseFloat(String(S.usdVal).replace(',', '.')); S.bsVal = isNaN(u) ? '' : fmt(u * BCV); }
+    if (changed) render();
+  }
+  loadRate(); setInterval(loadRate, 30 * 60 * 1000);
 
   render();
 })();
