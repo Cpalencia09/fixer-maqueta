@@ -18,13 +18,24 @@ service cloud.firestore {
       allow read, write: if request.auth != null && request.auth.uid == uid;
     }
 
-    // Solicitudes: cada cliente ve y modifica solo las suyas.
+    // Solicitudes: las ve el cliente que la creó y el técnico contratado.
     match /solicitudes/{id} {
       allow create: if request.auth != null && request.resource.data.clienteId == request.auth.uid;
-      allow read, delete: if request.auth != null && resource.data.clienteId == request.auth.uid;
+
+      allow read: if request.auth != null && resource.data.clienteId == request.auth.uid;
+      allow read: if request.auth != null && resource.data.tecnicoId == request.auth.uid;
+
+      // El cliente puede actualizar su solicitud (liberar pago, calificar) sin cambiar de dueño.
       allow update: if request.auth != null
                     && resource.data.clienteId == request.auth.uid
                     && request.resource.data.clienteId == resource.data.clienteId;
+
+      // El técnico solo puede cambiar el estado (aceptar, rechazar, terminar).
+      allow update: if request.auth != null
+                    && resource.data.tecnicoId == request.auth.uid
+                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['st']);
+
+      allow delete: if request.auth != null && resource.data.clienteId == request.auth.uid;
     }
   }
 }
