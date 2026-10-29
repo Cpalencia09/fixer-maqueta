@@ -531,8 +531,9 @@ body .on-grad .logo { color: #fff; }
     s[0] = s[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
     return s[0] + ',' + s[1];
   }
+  function fechaTxt() { var f = RATE.fecha || ''; return f.length >= 10 ? f.slice(8, 10) + '/' + f.slice(5, 7) + '/' + f.slice(0, 4) : ''; }
   function ratePill(cls) {
-    var tip = RATE.live ? 'Tasa oficial BCV' + (RATE.fecha ? ' · ' + RATE.fecha.slice(0, 10) : '') : 'No se pudo actualizar. Mostrando la última tasa guardada.';
+    var tip = RATE.live ? 'Tasa oficial BCV' + (RATE.fecha ? ' · ' + fechaTxt() : '') : 'No se pudo actualizar. Mostrando la última tasa guardada' + (RATE.fecha ? ' (' + fechaTxt() + ')' : '') + '.';
     return '<span class="pill ' + cls + '" title="' + tip + '"><i class="dot' + (RATE.live ? '' : ' off') + '"></i>BCV Bs. ' + fmt(BCV) + '</span>';
   }
   function usd(n) { return '$' + Number(n).toFixed(2); }
@@ -713,7 +714,7 @@ body .on-grad .logo { color: #fff; }
   function converter() {
     var u = '<div class="lbl">Dólares (USD)</div><div class="input"><span class="pre">$</span><input id="cUsd" inputmode="decimal" placeholder="0.00" value="' + esc(S.usdVal) + '" aria-label="Dólares"></div>';
     var b = '<div class="lbl">Bolívares (Bs)</div><div class="input"><span class="pre">Bs.</span><input id="cBs" inputmode="decimal" placeholder="0,00" value="' + esc(S.bsVal) + '" aria-label="Bolívares"></div>';
-    return '<div class="card conv"><div class="top"><div><h3>Conversor USD ⇔ Bs</h3><div class="tasa">Tasa BCV: <b>Bs. ' + fmt(BCV) + '</b></div></div><button class="sw" data-act="convSwap" aria-label="Invertir">' + ic('swap') + '</button></div>' + (S.convSwap ? b + u : u + b) + '</div>';
+    return '<div class="card conv"><div class="top"><div><h3>Conversor USD ⇔ Bs</h3><div class="tasa">Tasa BCV: <b>Bs. ' + fmt(BCV) + '</b>' + (RATE.fecha ? ' · ' + (RATE.live ? '' : 'última guardada, ') + 'del ' + fechaTxt() : '') + '</div></div><button class="sw" data-act="convSwap" aria-label="Invertir">' + ic('swap') + '</button></div>' + (S.convSwap ? b + u : u + b) + '</div>';
   }
 
   function servicios() {
