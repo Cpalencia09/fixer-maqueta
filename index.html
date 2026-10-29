@@ -1035,11 +1035,10 @@ body .on-grad .logo { color: #fff; }
         var data = d.exists ? d.data() : null;
         var name = (data && data.name) || pendingName || u.displayName || (u.email || '').split('@')[0];
         var role = S.role || (data && data.role) || 'cliente';
-        if (!data) return ref.set({ name: name, email: u.email, role: role, createdAt: Date.now() }).then(function () { return [name, role]; });
+        if (!data) return ref.set({ name: name, email: u.email, role: role, createdAt: Date.now() }, { merge: true }).then(function () { return [name, role]; });
         if (data.role !== role) ref.update({ role: role });
         return [name, role];
       }).then(function (r) {
-        pendingName = null;
         S.user = { name: r[0], email: u.email }; S.form.name = r[0]; S.role = r[1];
         listenReqs(); enterSession();
       }).catch(function (e) { go({ screen: 'auth', authErr: fbMsg(e) }); });
@@ -1071,8 +1070,12 @@ body .on-grad .logo { color: #fff; }
       if (S.authMode === 'register') {
         if (!(n && n.value.trim())) return go({ authErr: 'Escribe tu nombre completo.' });
         pendingName = n.value.trim();
-        fbAuth.createUserWithEmailAndPassword(m, p).catch(function (er) { pendingName = null; go({ authErr: fbMsg(er) }); });
+        var nm = pendingName;
+        fbAuth.createUserWithEmailAndPassword(m, p).then(function (c) {
+          return db.collection('users').doc(c.user.uid).set({ name: nm }, { merge: true });
+        }).then(function () { S.user.name = nm; S.form.name = nm; render(); }).catch(function (er) { pendingName = null; go({ authErr: fbMsg(er) }); });
       } else {
+        pendingName = null;
         fbAuth.signInWithEmailAndPassword(m, p).catch(function (er) { go({ authErr: fbMsg(er) }); });
       }
     } else if (e.target.id === 'homeSearch') {
