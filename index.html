@@ -71,11 +71,7 @@ html { overscroll-behavior: none; background: var(--stage); }
 .shell { position: relative; width: 100%; max-width: 440px; height: 100%; background: var(--bg); display: flex; flex-direction: column; overflow: hidden; }
 /* Pantalla completa en el teléfono: el contenido llega hasta los bordes y respeta el notch y la barra inferior. */
 @media (max-width: 519px) { .shell { height: 100dvh; } }
-/* Cada pantalla empieza con el degradado de la marca hasta el borde superior (la hora y la batería van en blanco encima).
-   Solo al desplazar aparece una franja bajo la hora, para que siga legible sobre el contenido. */
-.shell::before { content: ""; position: absolute; inset: 0 0 auto 0; height: env(safe-area-inset-top, 0px); background: linear-gradient(90deg, #1f4a73, #25788a); z-index: 30; pointer-events: none; opacity: 0; transition: opacity .2s; }
-.shell.scrolled::before { opacity: 1; }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .shell::before { background: linear-gradient(90deg, #17375a, #1c5b6d); } }
+/* Cada pantalla empieza con el degradado de la marca hasta el borde superior; el contenido pasa por debajo de la hora sin ninguna franja propia. */
 @media (min-width: 520px) {
   .stage { padding: 20px 0; }
   .shell { height: min(900px, 100%); border-radius: 34px; box-shadow: 0 30px 80px rgba(10, 25, 45, .28); border: 1px solid var(--line); }
@@ -1064,7 +1060,6 @@ body .on-grad .logo { color: #fff; }
     Object.keys(keep).forEach(function (k) { var e1 = document.getElementById(k); if (e1) e1.value = keep[k]; });
     Object.keys(keepC).forEach(function (k) { var e2 = document.getElementById(k); if (e2) e2.checked = keepC[k]; });
     var v2 = app.querySelector('.view'); if (v2) { v2.style.scrollBehavior = 'auto'; v2.scrollTop = top; v2.style.scrollBehavior = ''; }
-    app.classList.toggle('scrolled', !!v2 && v2.scrollTop > 6);
     lastKey = key;
     if (activeId) { var el = document.getElementById(activeId); if (el) { el.focus(); try { el.setSelectionRange(selS, selE); } catch (e) {} } }
     var cb = document.getElementById('chatBody') || document.getElementById('convBody'); if (cb) cb.scrollTop = cb.scrollHeight;
@@ -1433,9 +1428,6 @@ body .on-grad .logo { color: #fff; }
   }
 
   /* ---------- Eventos ---------- */
-  app.addEventListener('scroll', function (e) {
-    if (e.target.classList && e.target.classList.contains('view')) app.classList.toggle('scrolled', e.target.scrollTop > 6);
-  }, true);
   app.addEventListener('click', function (e) {
     var t = e.target.closest('[data-act]'); if (!t) return;
     if (t.classList.contains('scrim') && e.target !== t) return;
