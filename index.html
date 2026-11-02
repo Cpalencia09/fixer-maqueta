@@ -1269,13 +1269,13 @@ body .on-grad .logo { color: #fff; }
       S.supMine = d.exists ? d.data() : null;
       var n = S.supMine ? S.supMine.sinLeerUsuario || 0 : 0;
       if (supPrev !== null && n > supPrev && !(S.sheet && S.sheet.t === 'chat')) alertUser('Soporte te respondió.');
-      supPrev = n; render();
+      supPrev = n; render(); supRead();
     }, quiet));
     if (S.isSoporte) unsubReq.push(db.collection('soporte').onSnapshot(function (s) {
       S.staffConvs = s.docs.map(function (d) { return d.data(); }).sort(function (a, b) { return (b.ts || 0) - (a.ts || 0); });
       var cur = {}; S.staffConvs.forEach(function (c) { cur[c.uid] = c.sinLeer || 0; });
       if (staffPrev) S.staffConvs.forEach(function (c) { if ((c.sinLeer || 0) > (staffPrev[c.uid] || 0) && !(S.sheet && S.sheet.t === 'sconv' && S.sheet.id === c.uid)) alertUser('Soporte: mensaje nuevo de ' + (c.name || 'un usuario') + '.'); });
-      staffPrev = cur; render();
+      staffPrev = cur; render(); supRead();
     }, quiet));
     if (S.isAdmin) unsubReq.push(db.collection('soporte_equipo').onSnapshot(function (s) {
       S.soporteTeam = s.docs.map(function (d) { return d.data(); }); render();
