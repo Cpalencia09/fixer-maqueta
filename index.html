@@ -4,6 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex">
+<meta name="theme-color" content="#1f4a73" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#17375a" media="(prefers-color-scheme: dark)">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Fixer">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" href="icon-192.png">
 <style>:root{color-scheme:light}body{margin:0}</style>
 <title>Fixer Técnicos</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -58,12 +67,18 @@ button { cursor: pointer; border: 0; background: none; padding: 0; }
 svg.i { width: 1em; height: 1em; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
 
 .stage { height: 100%; display: flex; justify-content: center; align-items: center; }
+html { overscroll-behavior: none; background: var(--stage); }
 .shell { position: relative; width: 100%; max-width: 440px; height: 100%; background: var(--bg); display: flex; flex-direction: column; overflow: hidden; }
+/* Pantalla completa en el teléfono: el contenido llega hasta los bordes y respeta el notch y la barra inferior. */
+@media (max-width: 519px) { .shell { height: 100dvh; } }
+.shell { padding-top: env(safe-area-inset-top, 0px); }
+.shell::before { content: ""; position: absolute; inset: 0 0 auto 0; height: env(safe-area-inset-top, 0px); background: #1f4a73; z-index: 30; pointer-events: none; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .shell::before { background: #17375a; } }
 @media (min-width: 520px) {
   .stage { padding: 20px 0; }
   .shell { height: min(900px, 100%); border-radius: 34px; box-shadow: 0 30px 80px rgba(10, 25, 45, .28); border: 1px solid var(--line); }
 }
-.view { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; padding-inline: 20px; padding-bottom: 28px; scroll-behavior: smooth; }
+.view { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; padding-inline: 20px; padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px)); scroll-behavior: smooth; }
 .view.nopad { padding-inline: 0; }
 h1, h2, h3, p { margin: 0; }
 h1 { font-size: 26px; font-weight: 800; letter-spacing: -.03em; line-height: 1.15; text-wrap: balance; }
@@ -286,12 +301,12 @@ body .on-grad .logo { color: #fff; }
 .page-h { padding-top: 56px; margin-bottom: 26px; }
 .page-h h1 { font-size: 38px; letter-spacing: -.04em; }
 .page-h p { color: var(--muted); font-size: 18px; margin-top: 8px; }
-.nav { display: flex; background: var(--card); border-top: 1px solid var(--line); padding: 14px 6px 12px; flex: none; }
+.nav { display: flex; background: var(--card); border-top: 1px solid var(--line); padding: 14px 6px calc(12px + env(safe-area-inset-bottom, 0px)); flex: none; }
 .nav button { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; color: var(--muted); font-weight: 600; font-size: 16px; padding: 2px 0; min-width: 0; }
 .nav button svg { font-size: 28px; }
 .nav button.on { color: var(--btn); }
 .nav button.on svg { stroke-width: 2.4; }
-.fab { position: absolute; right: 18px; bottom: 112px; width: 64px; height: 64px; border-radius: 50%; background: var(--grad); color: #fff; font-size: 30px; display: grid; place-items: center; box-shadow: 0 10px 24px rgba(31,74,115,.4); z-index: 5; transition: transform .15s; }
+.fab { position: absolute; right: 18px; bottom: calc(112px + env(safe-area-inset-bottom, 0px)); width: 64px; height: 64px; border-radius: 50%; background: var(--grad); color: #fff; font-size: 30px; display: grid; place-items: center; box-shadow: 0 10px 24px rgba(31,74,115,.4); z-index: 5; transition: transform .15s; }
 .fab:active { transform: scale(.94); }
 
 /* requests */
@@ -402,7 +417,7 @@ body .on-grad .logo { color: #fff; }
 .msg { max-width: 82%; padding: 12px 16px; border-radius: 18px; margin-bottom: 10px; font-size: 16px; line-height: 1.45; animation: fade .2s; }
 .msg.u { margin-left: auto; background: var(--btn); color: var(--btn-ink); border-bottom-right-radius: 6px; }
 .msg.b { background: var(--bg); border: 1px solid var(--line); border-bottom-left-radius: 6px; }
-.chat-in { display: flex; gap: 10px; padding: 14px 16px 16px; border-top: 1px solid var(--line); flex: none; align-items: center; }
+.chat-in { display: flex; gap: 10px; padding: 14px 16px calc(16px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--line); flex: none; align-items: center; }
 .chat-in .input { flex: 1; border-radius: 99px; height: 56px; background: var(--bg); padding-right: 8px; }
 .chat-in .input button { width: 44px; height: 40px; border-radius: 12px; background: var(--btn); color: #fff; display: grid; place-items: center; font-size: 20px; opacity: .55; transition: opacity .15s; }
 .chat-in .input button.on { opacity: 1; }
@@ -417,7 +432,7 @@ body .on-grad .logo { color: #fff; }
 .sheet-f { padding: 14px 20px calc(18px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--line); flex: none; }
 .legal-t h3 { margin: 18px 0 6px; font-size: 17px; }
 .legal-t p { color: var(--muted); line-height: 1.55; }
-.toast { position: absolute; left: 50%; bottom: 120px; transform: translateX(-50%); background: #14284b; color: #fff; padding: 13px 20px; border-radius: 14px; font-weight: 600; font-size: 15px; z-index: 40; box-shadow: 0 10px 30px rgba(0,0,0,.3); animation: up .25s, fade .25s; max-width: 86%; text-align: center; }
+.toast { position: absolute; left: 50%; bottom: calc(120px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: #14284b; color: #fff; padding: 13px 20px; border-radius: 14px; font-weight: 600; font-size: 15px; z-index: 40; box-shadow: 0 10px 30px rgba(0,0,0,.3); animation: up .25s, fade .25s; max-width: 86%; text-align: center; }
 @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes up { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
 .toast { animation: fade .25s; }
