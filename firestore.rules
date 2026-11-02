@@ -8,6 +8,13 @@ service cloud.firestore {
           && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
     }
 
+    // Participantes de una solicitud: el cliente que la creó y el técnico contratado.
+    function enSolicitud(id) {
+      let s = get(/databases/$(database)/documents/solicitudes/$(id)).data;
+      return request.auth != null
+          && (s.clienteId == request.auth.uid || s.get('tecnicoId', '') == request.auth.uid);
+    }
+
     // Cada usuario solo puede comprobar si él mismo es admin. Nadie escribe aquí desde la app.
     match /admins/{uid} {
       allow get: if request.auth != null && request.auth.uid == uid;
@@ -38,6 +45,21 @@ service cloud.firestore {
       allow read: if isAdmin();
     }
 
+    // Fotos de los documentos (cédula, selfie, certificado), una por documento.
+    // El id es "{uid}_{documento}". Solo su dueño y los administradores pueden verlas.
+    match /tecnicos_docs/{id} {
+      allow create, update: if request.auth != null
+                            && request.resource.data.uid == request.auth.uid
+                            && id == request.auth.uid + '_' + request.resource.data.k
+                            && request.resource.data.k in ['ced', 'selfie', 'cert']
+                            && request.resource.data.img is string
+                            && request.resource.data.img.size() < 400000
+                            && request.resource.data.img.matches('data:image/jpeg;base64,.*');
+      allow read: if request.auth != null && resource.data.uid == request.auth.uid;
+      allow read: if isAdmin();
+      allow delete: if request.auth != null && resource.data.uid == request.auth.uid;
+    }
+
     // Solicitudes: las ve el cliente que la creó y el técnico contratado.
     match /solicitudes/{id} {
       allow create: if request.auth != null && request.resource.data.clienteId == request.auth.uid;
@@ -56,6 +78,17 @@ service cloud.firestore {
                     && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['st']);
 
       allow delete: if request.auth != null && resource.data.clienteId == request.auth.uid;
+
+      // Chat de la solicitud: solo cliente y técnico, mensajes de hasta 500 caracteres.
+      match /mensajes/{m} {
+        allow read: if enSolicitud(id);
+        allow create: if enSolicitud(id)
+                      && request.resource.data.de == request.auth.uid
+                      && request.resource.data.x is string
+                      && request.resource.data.x.size() > 0
+                      && request.resource.data.x.size() <= 500;
+        allow delete: if enSolicitud(id);
+      }
     }
   }
 }

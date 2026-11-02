@@ -362,6 +362,17 @@ body .on-grad .logo { color: #fff; }
 .foot-note a { color: var(--teal); font-weight: 700; }
 .foot-note small { display: block; margin-top: 8px; font-size: 15px; }
 
+.chk { display: flex; gap: 12px; align-items: flex-start; margin: 4px 0 18px; font-size: 14.5px; line-height: 1.45; color: var(--muted); cursor: pointer; }
+.chk input { width: 22px; height: 22px; margin: 0; flex: none; accent-color: var(--teal); }
+.chk a { color: var(--teal); font-weight: 700; cursor: pointer; }
+.upl { cursor: pointer; }
+.thumb { width: 46px; height: 46px; border-radius: 12px; object-fit: cover; flex: none; border: 1px solid var(--line); }
+.bdg { position: absolute; top: -4px; left: calc(50% + 6px); min-width: 20px; height: 20px; padding: 0 5px; border-radius: 10px; background: #d92d20; color: #fff; font-size: 12px; font-weight: 800; font-style: normal; display: grid; place-items: center; border: 2px solid var(--card); box-sizing: content-box; }
+.nav button { position: relative; }
+.ph { background: var(--warn-soft); color: var(--warn); border-radius: 6px; padding: 0 5px; font-weight: 700; }
+.legal-t p.li { padding-left: 16px; position: relative; }
+.legal-t p.li::before { content: "•"; position: absolute; left: 3px; color: var(--teal); }
+.msg small { display: block; font-size: 11px; opacity: .7; margin-top: 4px; }
 /* sheets */
 .scrim { position: absolute; inset: 0; background: rgba(14, 26, 39, .5); z-index: 20; display: flex; flex-direction: column; justify-content: flex-end; animation: fade .2s; }
 .sheet { background: var(--card); border-radius: 28px 28px 0 0; max-height: 88%; display: flex; flex-direction: column; overflow: hidden; animation: up .25s cubic-bezier(.2,.8,.2,1); }
@@ -469,6 +480,7 @@ body .on-grad .logo { color: #fff; }
     award: '<circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/>',
     updown: '<path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/>',
     check: '<path d="M20 6 9 17l-5-5"/>',
+    bell: '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
     camera: '<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z"/><circle cx="12" cy="13" r="3"/>',
     trend: '<polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>',
     google: ''
@@ -531,6 +543,113 @@ body .on-grad .logo { color: #fff; }
     s[0] = s[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
     return s[0] + ',' + s[1];
   }
+  /* ---------- Textos legales (borrador) ---------- */
+  var LEGAL_VERSION = '2026-11-02';
+  var LEGAL_CFG = { EMPRESA: '[NOMBRE LEGAL DE LA EMPRESA]', CORREO: '[CORREO DE CONTACTO]', CIUDAD: '[CIUDAD]', PLAZO: '[PLAZO EN DÍAS]', PAGOS: '[MÉTODOS DE PAGO, PLAZOS Y COMISIÓN]' };
+  var LEGAL = {
+    terms: {
+      t: 'Términos y condiciones',
+      aviso: 'Borrador de trabajo. Antes de usarlo con usuarios reales, un abogado debe revisarlo y debes completar lo marcado en corchetes. En esta versión de demostración no se procesan pagos reales.',
+      s: [
+        ['Qué es Fixer', ['Fixer es una plataforma que conecta a personas que necesitan un servicio (clientes) con técnicos y profesionales independientes. {EMPRESA} ofrece la plataforma. El servicio lo presta el técnico.', 'Fixer no es empleador de los técnicos ni presta directamente los servicios.']],
+        ['Tu cuenta', ['- Debes ser mayor de 18 años.', '- Los datos que das deben ser verdaderos y estar al día.', '- Eres responsable de tu contraseña y de lo que se haga desde tu cuenta.', '- Cada persona puede tener una sola cuenta.']],
+        ['Técnicos y verificación', ['Para ofrecer servicios debes completar tu perfil y subir una foto de tu cédula o RIF y una selfie. Fixer puede aprobar, rechazar o retirar la verificación.', '«Verificado» significa que revisamos esos documentos. No es una garantía de la calidad del trabajo.', 'Trabajas de forma independiente. Eres responsable de tus herramientas, permisos e impuestos.']],
+        ['Solicitudes y precios', ['El precio que ves es la tarifa por visita que fija el técnico, en dólares. El equivalente en bolívares se calcula con la tasa oficial del BCV y es informativo: puede diferir del monto exacto al pagar.', 'Antes de que el técnico empiece, acuerden por el chat el alcance del trabajo, la dirección y el horario.']],
+        ['Pago en custodia y código de cierre', ['El pago se retiene al contratar y se libera al técnico cuando el cliente ingresa el código de cierre que este le entrega al terminar. Condiciones de pago: {PAGOS}.', 'Si el técnico rechaza la solicitud, no se cobra al cliente.']],
+        ['Cancelaciones y reclamos', ['Si tienes un problema con un servicio, escríbenos a {CORREO} dentro de {PLAZO} después de terminado. Fixer puede mediar, pero no garantiza un resultado.']],
+        ['Conducta', ['- No te hagas pasar por otra persona.', '- No uses datos de otros usuarios para fines distintos a la solicitud.', '- No acoses, amenaces ni publiques contenido ilegal u ofensivo.', '- No uses la plataforma para evadir pagos o engañar a otros usuarios.']],
+        ['Responsabilidad', ['Fixer no garantiza que siempre haya técnicos disponibles ni que el servicio quede como esperas. Fixer no responde por daños causados por un técnico al ejecutar el trabajo, salvo lo que la ley no permita excluir.']],
+        ['Suspensión y baja', ['Podemos suspender cuentas que incumplan estos términos. Tú puedes eliminar la tuya en cualquier momento desde Perfil → Eliminar cuenta.']],
+        ['Cambios', ['Podemos actualizar estos términos. Los cambios importantes se avisarán dentro de la app. La versión y la fecha aparecen arriba.']],
+        ['Ley aplicable', ['Estos términos se rigen por las leyes de la República Bolivariana de Venezuela. Las controversias se someten a los tribunales de {CIUDAD}.']],
+        ['Contacto', ['{EMPRESA} · {CORREO}']]
+      ]
+    },
+    priv: {
+      t: 'Política de privacidad',
+      aviso: 'Borrador de trabajo. Antes de usarlo con usuarios reales, un abogado debe revisarlo y debes completar lo marcado en corchetes.',
+      s: [
+        ['Quién es responsable', ['{EMPRESA} es responsable de tus datos. Contacto: {CORREO}.']],
+        ['Qué datos guardamos', ['- Todos los usuarios: nombre, correo, rol y la fecha en que aceptaste estos textos. Tu contraseña la gestiona el proveedor de acceso y nosotros no la vemos.', '- Técnicos: teléfono, cédula o RIF, ciudad y zona, rubros, experiencia, tarifa, foto de la cédula, selfie y, si la subes, un certificado.', '- Uso de la app: solicitudes (descripción, estado y monto), mensajes del chat y calificaciones.', '- En tu navegador: la última tasa BCV y, si los activas, los avisos del dispositivo.']],
+        ['Para qué los usamos', ['- Crear tu cuenta y mantenerla segura.', '- Verificar la identidad de los técnicos.', '- Conectar clientes con técnicos y avisarles de cada paso.', '- Atender soporte y prevenir fraudes.', 'No vendemos tus datos ni los usamos para publicidad de terceros.']],
+        ['Quién ve qué', ['- Los técnicos ven el nombre del cliente y lo que escribe en la solicitud y en el chat.', '- Los clientes ven del técnico su nombre, zona, rubros, tarifa y si está verificado.', '- Tu teléfono, cédula y fotos de documentos solo los ven tú y el equipo que verifica técnicos.']],
+        ['Proveedores que usamos', ['- Google Firebase: inicio de sesión y base de datos. Sus servidores pueden estar fuera de Venezuela.', '- DolarApi: nos da la tasa del BCV. No recibe tus datos personales, solo la dirección de internet de tu dispositivo, como cualquier sitio web.', '- Google Fonts: la tipografía de la página.']],
+        ['Cuánto tiempo los guardamos', ['Mientras tu cuenta esté activa. Si la eliminas, borramos tu perfil, tus documentos y tus solicitudes como cliente. Las solicitudes en las que participaste con otra persona pueden seguir visibles para ella mientras mantenga su cuenta. {PLAZO}', 'Podemos conservar lo que la ley nos obligue a guardar.']],
+        ['Tus derechos', ['Puedes ver, corregir o eliminar tus datos. La eliminación se hace desde Perfil → Eliminar cuenta. Para pedir una copia o ayuda, escribe a {CORREO}.']],
+        ['Seguridad', ['Usamos reglas de acceso para que cada persona vea solo lo suyo y conexión cifrada. Ningún sistema es totalmente seguro: si detectas algo extraño, avísanos.']],
+        ['Menores', ['Fixer es solo para mayores de 18 años.']],
+        ['Cambios y contacto', ['Si cambiamos esta política, lo avisaremos en la app. Contacto: {CORREO}.']]
+      ]
+    }
+  };
+
+  /* ---------- Avisos ---------- */
+  var TITLE = document.title, unread = 0;
+  var seen = { req: { init: false, m: {} }, job: { init: false, m: {} } };
+  function alertUser(msg) {
+    toast(msg);
+    try { if (document.hidden && window.Notification && Notification.permission === 'granted') new Notification('Fixer', { body: msg, tag: 'fixer' }); } catch (e) {}
+    if (document.hidden) { unread++; document.title = '(' + unread + ') ' + TITLE; }
+  }
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) { unread = 0; document.title = TITLE; } });
+  function diffNotify(list, kind) {
+    var s = seen[kind];
+    if (s.init) list.forEach(function (x) {
+      var old = s.m[x.id], who = (x.tn || 'El técnico').split(' ')[0], msg = '';
+      if (old === x.st) return;
+      if (kind === 'req' && x.tecnicoId) {
+        if (x.st === 'trabajando') msg = who + ' aceptó tu solicitud.';
+        else if (x.st === 'porliberar') msg = who + ' terminó. Pídele el código de cierre.';
+        else if (x.st === 'rechazada') msg = who + ' no pudo tomar tu solicitud.';
+      } else if (kind === 'job') {
+        if (old === undefined && x.st === 'pendiente') msg = 'Nueva solicitud de ' + (x.cliente || 'un cliente') + '.';
+        else if (x.st === 'liberado') msg = (x.cliente || 'Tu cliente') + ' liberó tu pago de ' + usd(x.amt) + '.';
+      }
+      if (msg) alertUser(msg);
+    });
+    s.m = {}; list.forEach(function (x) { s.m[x.id] = x.st; }); s.init = true;
+  }
+  function badge(key) {
+    var n = 0;
+    if (S.role === 'tecnico' && HAS_FB && key === 'inicio' && S.techOnline) n = S.jobsDB.filter(function (j) { return j.st === 'pendiente'; }).length;
+    if (S.role === 'cliente' && key === 'solicitudes') n = S.requests.filter(function (q) { return q.st === 'porliberar'; }).length;
+    return n ? '<i class="bdg">' + n + '</i>' : '';
+  }
+  function notifRow() {
+    var st = !window.Notification ? 'No disponible' : Notification.permission === 'granted' ? 'Activados' : Notification.permission === 'denied' ? 'Bloqueados' : 'Activar';
+    return '<button class="mi" data-act="notif">' + ic('bell') + '<span class="tx">Avisos en este dispositivo<span>Mientras la app esté abierta en una pestaña</span></span><span class="' + (st === 'Activados' ? 'ok' : 'muted') + '">' + st + '</span></button>';
+  }
+
+  /* ---------- Fotos de documentos ---------- */
+  function compressImg(file, maxSide, cb) {
+    var fr = new FileReader();
+    fr.onerror = function () { cb(null); };
+    fr.onload = function () {
+      var im = new Image();
+      im.onerror = function () { cb(null); };
+      im.onload = function () {
+        var k = Math.min(1, maxSide / Math.max(im.width, im.height)), c = document.createElement('canvas');
+        c.width = Math.max(1, Math.round(im.width * k)); c.height = Math.max(1, Math.round(im.height * k));
+        c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+        var q = 0.8, out = c.toDataURL('image/jpeg', q);
+        while (out.length > 280000 && q > 0.35) { q -= 0.1; out = c.toDataURL('image/jpeg', q); }
+        cb(out.length > 380000 ? null : out);
+      };
+      im.src = fr.result;
+    };
+    fr.readAsDataURL(file);
+  }
+  function handleDoc(el) {
+    var file = el.files && el.files[0], k = el.getAttribute('data-doc');
+    if (!file) return;
+    if (!/^image\//.test(file.type) || file.size > 15 * 1024 * 1024) return toast('Elige una foto (JPG o PNG) de menos de 15 MB.');
+    compressImg(file, 1000, function (out) {
+      if (!out) return toast('No se pudo leer la foto. Prueba con otra.');
+      S.form.imgs[k] = out; S.form.docs[k] = true; render();
+    });
+  }
+  function safeImg(s) { return typeof s === 'string' && /^data:image\/jpeg;base64,[A-Za-z0-9+\/=]+$/.test(s) ? s : ''; }
+
   function fechaTxt() { var f = RATE.fecha || ''; return f.length >= 10 ? f.slice(8, 10) + '/' + f.slice(5, 7) + '/' + f.slice(0, 4) : ''; }
   function ratePill(cls) {
     var tip = RATE.live ? 'Tasa oficial BCV' + (RATE.fecha ? ' · ' + fechaTxt() : '') : 'No se pudo actualizar. Mostrando la última tasa guardada' + (RATE.fecha ? ' (' + fechaTxt() + ')' : '') + '.';
@@ -570,7 +689,7 @@ body .on-grad .logo { color: #fff; }
   var S = {
     screen: HAS_FB ? 'loading' : 'landing', uid: null, role: null, techDB: [], jobsDB: [], adminTechs: [], priv: {}, isAdmin: false, adminF: 'pendiente', tab: 'inicio', step: 1, authMode: 'login', authErr: '',
     user: { name: 'Carlos Palencia', email: 'elgramu702@gmail.com' },
-    form: { name: 'Carlos Palencia', phone: '', cedula: '', city: '', zona: '', rubros: [], exp: '', bio: '', docs: { ced: false, selfie: false, cert: false }, tarifa: '', h24: false, radio: '10' },
+    form: { name: 'Carlos Palencia', phone: '', cedula: '', city: '', zona: '', rubros: [], exp: '', bio: '', docs: { ced: false, selfie: false, cert: false }, imgs: {}, consent: false, tarifa: '', h24: false, radio: '10' },
     q: '', filterRubro: null, sheet: null, toast: '', mapZoom: 1, gps: false, convSwap: false, usdVal: '', bsVal: '',
     requests: [], chat: [], techOnline: true, techReq: [
       { id: 'r1', cliente: 'María G.', rubro: 'Plomería', z: 'Chacao', d: 'Fuga debajo del lavamanos de la cocina.', amt: 30 },
@@ -598,7 +717,7 @@ body .on-grad .logo { color: #fff; }
   }
   function nav(items) {
     return '<nav class="nav">' + items.map(function (i) {
-      return '<button class="' + (S.tab === i[0] ? 'on' : '') + '" data-act="tab" data-tab="' + i[0] + '">' + ic(i[2]) + i[1] + '</button>';
+      return '<button class="' + (S.tab === i[0] ? 'on' : '') + '" data-act="tab" data-tab="' + i[0] + '">' + ic(i[2]) + badge(i[0]) + i[1] + '</button>';
     }).join('') + '</nav>';
   }
   function fab() { return '<button class="fab" data-act="chat" aria-label="Soporte">' + ic('headset') + '</button>'; }
@@ -630,6 +749,7 @@ body .on-grad .logo { color: #fff; }
       (reg ? '<div class="field"><label for="aName">Nombre completo</label><div class="input">' + ic('user') + '<input id="aName" autocomplete="name" placeholder="Tu nombre"></div></div>' : '') +
       '<div class="field"><label for="aMail">Correo</label><div class="input">' + ic('mail') + '<input id="aMail" type="email" autocomplete="email" placeholder="tu@correo.com"></div></div>' +
       '<div class="field"><label for="aPass">Contraseña' + (reg ? '' : '<a data-act="forgot">¿Olvidaste tu contraseña?</a>') + '</label><div class="input">' + ic('lock') + '<input id="aPass" type="password" autocomplete="current-password" placeholder="••••••••"></div></div>' +
+      (reg ? '<label class="chk" for="aTerms" style="text-align:left"><input type="checkbox" id="aTerms"><span>Acepto los <a data-act="legal" data-k="terms">Términos</a> y la <a data-act="legal" data-k="priv">Política de privacidad</a>.</span></label>' : '') +
       (S.authErr ? '<p class="err">' + S.authErr + '</p>' : '') +
       '<button class="btn" type="submit">' + (reg ? 'Crear cuenta' : 'Iniciar sesión') + '</button></form></div>' +
       '<p class="swap">' + (reg ? '¿Ya tienes cuenta? <a data-act="authMode" data-m="login">Inicia sesión</a>' : '¿No tienes una cuenta? <a data-act="authMode" data-m="register">Crear una</a>') + '</p>' +
@@ -657,7 +777,13 @@ body .on-grad .logo { color: #fff; }
     } else if (s === 4) {
       var D = [['ced', 'Cédula o RIF', 'Foto clara, ambos lados', 'idcard'], ['selfie', 'Selfie de verificación', 'Para confirmar tu identidad', 'camera'], ['cert', 'Certificado o referencia', 'Opcional', 'award']];
       body = '<h1>Verifica tu identidad</h1><p class="sub">Los técnicos verificados reciben más solicitudes.</p>' +
-        D.map(function (d) { return '<button class="card upl" data-act="doc" data-k="' + d[0] + '"><div class="ic">' + ic(d[3]) + '</div><div><b>' + d[1] + '</b><span>' + d[2] + '</span></div><div class="st">' + (f.docs[d[0]] ? '<span class="tag ok">' + ic('check') + 'Adjunto</span>' : '<span class="tag">Subir</span>') + '</div></button>'; }).join('');
+        D.map(function (d) {
+          var img = safeImg(f.imgs[d[0]]);
+          return '<label class="card upl" for="doc-' + d[0] + '">' + (img ? '<img class="thumb" alt="' + d[1] + '" src="' + img + '">' : '<div class="ic">' + ic(d[3]) + '</div>') +
+            '<div><b>' + d[1] + '</b><span>' + (img ? 'Toca para cambiar la foto' : d[2]) + '</span></div><div class="st">' + (f.docs[d[0]] ? '<span class="tag ok">' + ic('check') + 'Adjunta</span>' : '<span class="tag">Subir foto</span>') + '</div>' +
+            '<input type="file" id="doc-' + d[0] + '" accept="image/*"' + (d[0] === 'selfie' ? ' capture="user"' : '') + ' data-doc="' + d[0] + '" hidden></label>';
+        }).join('') +
+        '<label class="chk" for="fConsent"><input type="checkbox" id="fConsent" data-chk="consent"' + (f.consent ? ' checked' : '') + '><span>Autorizo a Fixer a revisar mis documentos de identidad para verificarme. Solo yo y el equipo de verificación podremos verlos. <a data-act="legal" data-k="priv">Política de privacidad</a></span></label>';
     } else if (s === 5) {
       body = '<h1>Tus tarifas</h1><p class="sub">Define el precio base por visita. Puedes cambiarlo después.</p>' +
         '<div class="field"><label for="fTar">Tarifa por visita (USD)</label><div class="input"><span class="pre">$</span><input id="fTar" data-f="tarifa" inputmode="decimal" value="' + esc(f.tarifa) + '" placeholder="30.00"></div></div>' +
@@ -677,7 +803,7 @@ body .on-grad .logo { color: #fff; }
     if (s === 1) return f.name.trim().length > 2 && f.phone.replace(/\D/g, '').length >= 10 && f.cedula.trim().length >= 5 && f.city && f.zona.trim();
     if (s === 2) return f.rubros.length > 0;
     if (s === 3) return !!f.exp;
-    if (s === 4) return f.docs.ced && f.docs.selfie;
+    if (s === 4) return f.docs.ced && f.docs.selfie && f.consent;
     if (s === 5) return parseFloat(f.tarifa) > 0;
     return true;
   }
@@ -756,7 +882,7 @@ body .on-grad .logo { color: #fff; }
     if (q.st === 'liberado') act = '<div class="stars" role="group" aria-label="Califica al técnico"><span class="muted" style="margin-right:6px;font-weight:600">Califica:</span>' + [1, 2, 3, 4, 5].map(function (n) { return '<button class="' + (q.rate >= n ? 'on' : '') + '" data-act="rate" data-id="' + q.id + '" data-n="' + n + '" aria-label="' + n + ' estrellas">' + ic('star') + '</button>'; }).join('') + '</div>';
     return '<div class="card req"><div class="top"><div class="avatar" style="background:' + t.col + '">' + initials(t.n) + '</div><div class="tx"><b>' + esc(t.n) + '</b><span>' + r.n + ' · ' + esc(t.z) + '</span></div><span class="tag ' + (q.st === 'liberado' ? 'ok' : '') + '">' + (q.st === 'pendiente' ? 'Esperando técnico' : q.st === 'rechazada' ? 'Rechazada' : ['', 'En custodia', 'En custodia', 'Por liberar', 'Completado'][s]) + '</span></div>' +
       (q.desc ? '<p class="desc">«' + esc(q.desc) + '»</p>' : '') + prog +
-      '<div class="amount"><span class="muted">' + (q.st === 'liberado' ? 'Pagado' : 'Retenido en custodia') + '</span><span class="price"><b>' + usd(q.amt) + '</b><span>≈ Bs. ' + fmt(q.amt * BCV) + '</span></span></div>' + act + '</div>';
+      '<div class="amount"><span class="muted">' + (q.st === 'liberado' ? 'Pagado' : 'Retenido en custodia') + '</span><span class="price"><b>' + usd(q.amt) + '</b><span>≈ Bs. ' + fmt(q.amt * BCV) + '</span></span></div>' + act + (q.tecnicoId && q.st !== 'rechazada' ? '<button class="btn ghost sm" style="width:100%;margin-top:12px" data-act="conv" data-id="' + q.id + '" data-n="' + esc(t.n) + '">' + ic('send') + 'Chat con ' + esc(t.n.split(' ')[0]) + '</button>' : '') + '</div>';
   }
   function solicitudes() {
     return '<div class="view"><div class="page-h"><h1>Mi actividad</h1><p>Sigue el estado de tus solicitudes y libera los pagos.</p></div>' +
@@ -768,7 +894,7 @@ body .on-grad .logo { color: #fff; }
       '<div class="card prof"><div class="pa">' + initials(u.name) + '</div><div style="min-width:0"><b>' + esc(u.name) + ic('badge') + '</b><div class="em">' + esc(u.email) + '</div><span class="tag">' + (tec ? 'Técnico' : 'Cliente') + '</span></div></div>' +
       '<div class="card menu"><button class="mi big" data-act="home"><div class="ic">' + ic('sync') + '</div><div class="tx">Cambiar modalidad<span>Volver a la pantalla de selección de rol</span></div>' + ic('chevR', 'chev') + '</button></div>' +
       (S.isAdmin ? '<div class="card menu"><button class="mi" data-act="admin">' + ic('award') + '<span class="tx">Panel de administración</span>' + ic('chevR', 'chev') + '</button></div>' : '') + '<div class="card menu"><button class="mi" data-act="kyc">' + ic('shieldOk', '') + '<span class="tx" style="color:var(--ink)">Verificación KYC</span><span class="ok">Verificado</span>' + ic('chevR', 'chev') + '</button>' +
-      '<button class="mi" data-act="legal" data-k="priv">' + ic('shield') + '<span class="tx">Política de privacidad</span>' + ic('chevR', 'chev') + '</button>' +
+      notifRow() + '<button class="mi" data-act="legal" data-k="priv">' + ic('shield') + '<span class="tx">Política de privacidad</span>' + ic('chevR', 'chev') + '</button>' +
       '<button class="mi" data-act="legal" data-k="terms">' + ic('file') + '<span class="tx">Términos y condiciones</span>' + ic('chevR', 'chev') + '</button>' +
       '<button class="mi" data-act="chat">' + ic('help') + '<span class="tx">Ayuda y soporte</span>' + ic('chevR', 'chev') + '</button></div>' +
       '<button class="btn danger" style="margin-top:22px;font-size:18px" data-act="logout">' + ic('logout') + 'Cerrar sesión</button>' +
@@ -819,8 +945,25 @@ body .on-grad .logo { color: #fff; }
         '<div class="sheet-f two"><button class="btn ghost" data-act="closeSheet">Cancelar</button><button class="btn" data-act="hire" data-id="' + t.id + '">Solicitar</button></div></div></div>';
     }
     if (sh.t === 'legal') {
-      var T = sh.k === 'terms' ? ['Términos y condiciones', [['Uso de la plataforma', 'Fixer conecta clientes con técnicos independientes verificados. Al usar la app aceptas estos términos.'], ['Pagos en custodia', 'El pago se retiene al contratar y se libera al técnico cuando el cliente ingresa el código de cierre.'], ['Responsabilidad', 'Los técnicos son responsables de la calidad de su trabajo. Fixer media en caso de disputa.']]] : ['Política de privacidad', [['Datos que recopilamos', 'Nombre, contacto, ubicación aproximada y datos de verificación de identidad.'], ['Cómo los usamos', 'Para conectarte con técnicos cercanos, procesar pagos y mejorar el servicio.'], ['Tus derechos', 'Puedes pedir acceso, corrección o eliminación de tus datos desde Perfil.']]];
-      return '<div class="scrim" data-act="closeSheet"><div class="sheet" data-stop><div class="sheet-h"><div class="ic">' + ic('file') + '</div><div><b>' + T[0] + '</b></div><button class="x" data-act="closeSheet" aria-label="Cerrar">' + ic('x') + '</button></div><div class="sheet-b legal-t">' + T[1].map(function (s) { return '<h3>' + s[0] + '</h3><p>' + s[1] + '</p>'; }).join('') + '<p style="margin-top:20px;font-size:13px">Documento de demostración.</p></div></div></div>';
+      var L = LEGAL[sh.k], fx = function (t) { return esc(t).replace(/\{(\w+)\}/g, function (m, k) { return '<span class="ph">' + esc(LEGAL_CFG[k] || m) + '</span>'; }); };
+      return '<div class="scrim" data-act="closeSheet"><div class="sheet" data-stop><div class="sheet-h"><div class="ic">' + ic(sh.k === 'terms' ? 'file' : 'shield') + '</div><div><b>' + L.t + '</b><span>Versión del ' + LEGAL_VERSION + '</span></div><button class="x" data-act="closeSheet" aria-label="Cerrar">' + ic('x') + '</button></div>' +
+        '<div class="sheet-b legal-t"><div class="note">' + ic('help') + '<span>' + fx(L.aviso) + '</span></div>' +
+        L.s.map(function (s, i) { return '<h3>' + (i + 1) + '. ' + s[0] + '</h3>' + s[1].map(function (p) { return p.charAt(0) === '-' ? '<p class="li">' + fx(p.slice(2)) + '</p>' : '<p>' + fx(p) + '</p>'; }).join(''); }).join('') + '</div></div></div>';
+    }
+    if (sh.t === 'conv') {
+      var msgs = S.convMsgs.length ? S.convMsgs.map(function (m) { return '<div class="msg ' + (m.de === S.uid ? 'u' : 'b') + '">' + esc(m.x) + '<small>' + new Date(m.ts).toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit' }) + '</small></div>'; }).join('') :
+        '<div class="chat-empty"><div class="ci">' + ic('send') + '</div><b>Escribe el primer mensaje</b><p>Acuerda aquí los detalles del trabajo: dirección, horario y alcance.</p></div>';
+      return '<div class="scrim" data-act="closeSheet"><div class="sheet chat" data-stop><div class="sheet-h"><div class="ic">' + ic('user') + '</div><div><b>' + esc(sh.n) + '</b><span><i></i>Chat de la solicitud</span></div><button class="x" data-act="closeSheet" aria-label="Cerrar">' + ic('x') + '</button></div>' +
+        '<div class="sheet-b" id="convBody">' + msgs + '</div>' +
+        '<form class="chat-in" id="convForm"><div class="input"><input id="convIn" placeholder="Escribe un mensaje..." autocomplete="off" maxlength="500" aria-label="Mensaje"><button type="submit" class="on" aria-label="Enviar">' + ic('send') + '</button></div></form></div></div>';
+    }
+    if (sh.t === 'docs') {
+      var dv = S.docView || {}, dn = { ced: 'Cédula o RIF', selfie: 'Selfie de verificación', cert: 'Certificado o referencia' };
+      var fotos = dv.imgs ? Object.keys(dv.imgs).filter(function (k) { return safeImg(dv.imgs[k]); }) : [];
+      return '<div class="scrim" data-act="closeSheet"><div class="sheet" data-stop><div class="sheet-h"><div class="ic">' + ic('idcard') + '</div><div><b>' + esc(dv.name || 'Técnico') + '</b><span>Documentos de verificación</span></div><button class="x" data-act="closeSheet" aria-label="Cerrar">' + ic('x') + '</button></div>' +
+        '<div class="sheet-b">' + (!dv.imgs ? '<p class="muted">Cargando…</p>' : fotos.length ? fotos.map(function (k) {
+          return '<h3 style="margin:0 0 8px;font-size:16px">' + (dn[k] || esc(k)) + '</h3><img alt="' + (dn[k] || '') + '" src="' + safeImg(dv.imgs[k]) + '" style="width:100%;border-radius:14px;border:1px solid var(--line);margin-bottom:18px">';
+        }).join('') : '<p class="muted">Este técnico no subió fotos.</p>') + '</div></div></div>';
     }
     if (sh.t === 'del') {
       return '<div class="scrim" data-act="closeSheet"><div class="sheet" data-stop><div class="sheet-b" style="text-align:center;padding-top:30px"><div class="ei" style="width:64px;height:64px;border-radius:20px;background:var(--danger-soft);color:var(--danger);display:grid;place-items:center;font-size:30px;margin:0 auto 18px">' + ic('trash') + '</div><h2>¿Eliminar tu cuenta?</h2><p class="muted" style="margin:10px 0 0;line-height:1.5">Se borrarán tus datos y solicitudes. Esta acción no se puede deshacer.</p></div><div class="sheet-f two"><button class="btn ghost" data-act="closeSheet">Cancelar</button><button class="btn" style="background:var(--danger)" data-act="delConfirm">Eliminar</button></div></div></div>';
@@ -831,6 +974,7 @@ body .on-grad .logo { color: #fff; }
   /* ---------- Render ---------- */
   var lastKey = '';
   function render() {
+    syncConv();
     var prev = app.querySelector('.view'), key = S.screen + S.role + S.tab + S.step + (S.filterRubro || ''), top = prev && key === lastKey ? prev.scrollTop : 0;
     var h = '';
     if (S.screen === 'loading') h = '<div class="view"><div class="success"><p class="muted">Cargando…</p></div></div>';
@@ -848,15 +992,20 @@ body .on-grad .logo { color: #fff; }
       h = (S.tab === 'inicio' ? (fbT ? techHomeFB() : techHome()) : S.tab === 'solicitudes' ? (fbT ? techJobsFB() : techJobs()) : S.tab === 'ingresos' ? (fbT ? ingresosFB() : ingresos()) : S.tab === 'admin' ? adminView() : perfil()) + nav(it2);
     }
     var keep = {};
-    app.querySelectorAll('input[id],textarea[id]').forEach(function (e0) { if (e0.id !== 'chatIn') keep[e0.id] = e0.value; });
+    var keepC = {};
+    app.querySelectorAll('input[id],textarea[id]').forEach(function (e0) {
+      if (e0.type === 'checkbox') keepC[e0.id] = e0.checked;
+      else if (e0.type !== 'file' && e0.id !== 'chatIn') keep[e0.id] = e0.value;
+    });
     var activeId = document.activeElement && document.activeElement.id, selS, selE;
     if (activeId) { selS = document.activeElement.selectionStart; selE = document.activeElement.selectionEnd; }
     app.innerHTML = h + sheetHtml() + (S.toast ? '<div class="toast" role="status">' + esc(S.toast) + '</div>' : '');
     Object.keys(keep).forEach(function (k) { var e1 = document.getElementById(k); if (e1) e1.value = keep[k]; });
+    Object.keys(keepC).forEach(function (k) { var e2 = document.getElementById(k); if (e2) e2.checked = keepC[k]; });
     var v2 = app.querySelector('.view'); if (v2) { v2.style.scrollBehavior = 'auto'; v2.scrollTop = top; v2.style.scrollBehavior = ''; }
     lastKey = key;
     if (activeId) { var el = document.getElementById(activeId); if (el) { el.focus(); try { el.setSelectionRange(selS, selE); } catch (e) {} } }
-    var cb = document.getElementById('chatBody'); if (cb) cb.scrollTop = cb.scrollHeight;
+    var cb = document.getElementById('chatBody') || document.getElementById('convBody'); if (cb) cb.scrollTop = cb.scrollHeight;
   }
 
   /* ---------- Acciones ---------- */
@@ -921,7 +1070,8 @@ body .on-grad .logo { color: #fff; }
     delConfirm: function () {
       if (!HAS_FB || !S.uid) { S.requests = []; go({ sheet: null, screen: 'landing', role: null, tab: 'inicio' }); return toast('Cuenta eliminada (demo).'); }
       var u = fbAuth.currentUser, id = S.uid;
-      Promise.all(S.requests.map(function (q) { return db.collection('solicitudes').doc(q.id).delete(); }).concat([
+      Promise.all(S.requests.map(delReq).concat([
+        db.collection('tecnicos_docs').where('uid', '==', id).get().then(function (s) { return Promise.all(s.docs.map(function (d) { return d.ref.delete(); })); }),
         db.collection('users').doc(id).delete(), db.collection('tecnicos').doc(id).delete(), db.collection('tecnicos_privado').doc(id).delete()
       ])).then(function () { return u.delete(); }).then(function () {
         go({ sheet: null, screen: 'landing', role: null, tab: 'inicio' }); toast('Cuenta eliminada.');
@@ -938,6 +1088,18 @@ body .on-grad .logo { color: #fff; }
     enterTech: function () { go({ screen: 'app', tab: 'inicio' }); },
     /* técnico */
     admin: function () { go({ tab: 'admin' }); },
+    adminDocs: function (d) {
+      S.docView = { name: d.n, imgs: null }; go({ sheet: { t: 'docs' } });
+      db.collection('tecnicos_docs').where('uid', '==', d.id).get().then(function (s) {
+        var o = {}; s.docs.forEach(function (x) { var v = x.data(); o[v.k] = v.img; }); S.docView.imgs = o; render();
+      }).catch(function (e) { toast(fbMsg(e)); });
+    },
+    notif: function () {
+      if (!window.Notification) return toast('Tu navegador no admite avisos.');
+      if (Notification.permission === 'default') return Notification.requestPermission().then(function () { render(); });
+      toast(Notification.permission === 'granted' ? 'Los avisos ya están activados.' : 'Los bloqueaste en el navegador. Actívalos en la configuración del sitio.');
+    },
+    conv: function (d) { go({ sheet: { t: 'conv', id: d.id, n: d.n } }); },
     adminF: function (d) { go({ adminF: d.f }); },
     setEstado: function (d) {
       db.collection('tecnicos').doc(d.id).update({ estado: d.st }).then(function () {
@@ -981,8 +1143,10 @@ body .on-grad .logo { color: #fff; }
     var f = S.form, now = Date.now();
     return Promise.all([
       db.collection('tecnicos').doc(S.uid).set({ name: f.name.trim(), city: f.city, zona: f.zona.trim(), rubros: f.rubros, exp: f.exp, bio: f.bio.trim(), tarifa: parseFloat(f.tarifa) || 0, h24: f.h24, radio: f.radio, estado: 'pendiente', online: true, ts: now }),
-      db.collection('tecnicos_privado').doc(S.uid).set({ phone: f.phone.trim(), cedula: f.cedula.trim(), docs: f.docs })
-    ]).catch(function (e) { toast(fbMsg(e)); });
+      db.collection('tecnicos_privado').doc(S.uid).set({ phone: f.phone.trim(), cedula: f.cedula.trim(), docs: f.docs, consent: { v: LEGAL_VERSION, ts: now } })
+    ].concat(Object.keys(f.imgs).map(function (k) {
+      return db.collection('tecnicos_docs').doc(S.uid + '_' + k).set({ uid: S.uid, k: k, img: f.imgs[k], ts: now });
+    }))).catch(function (e) { toast(fbMsg(e)); });
   }
   var COLS = ['#3b4a5e', '#2a7f9e', '#7c4a1e', '#0e7490', '#4f46c7', '#be123c', '#0f766e', '#15803d'];
   function docsOf(s) { return s.docs.map(function (d) { var x = d.data(); x.id = d.id; return x; }).sort(function (a, b) { return (b.ts || 0) - (a.ts || 0); }); }
@@ -992,8 +1156,9 @@ body .on-grad .logo { color: #fff; }
   }
   function listenReqs() {
     var quiet = function () {};
-    unsubReq.push(db.collection('solicitudes').where('clienteId', '==', S.uid).onSnapshot(function (s) { S.requests = docsOf(s); render(); }, quiet));
-    unsubReq.push(db.collection('solicitudes').where('tecnicoId', '==', S.uid).onSnapshot(function (s) { S.jobsDB = docsOf(s); render(); }, quiet));
+    seen = { req: { init: false, m: {} }, job: { init: false, m: {} } };
+    unsubReq.push(db.collection('solicitudes').where('clienteId', '==', S.uid).onSnapshot(function (s) { S.requests = docsOf(s); diffNotify(S.requests, 'req'); render(); }, quiet));
+    unsubReq.push(db.collection('solicitudes').where('tecnicoId', '==', S.uid).onSnapshot(function (s) { S.jobsDB = docsOf(s); diffNotify(S.jobsDB, 'job'); render(); }, quiet));
     unsubReq.push(db.collection('tecnicos').onSnapshot(function (s) {
       var all = s.docs.map(function (d) { var x = d.data(); x.id = d.id; return x; });
       if (S.isAdmin) { S.adminTechs = all; loadPriv(); }
@@ -1025,8 +1190,23 @@ body .on-grad .logo { color: #fff; }
         var btns = st === 'verificado' ? '<button class="btn ghost sm" style="width:100%" data-act="setEstado" data-id="' + x.id + '" data-st="pendiente">Quitar verificación</button>' :
           '<div class="two"><button class="btn ghost sm" style="width:100%" data-act="setEstado" data-id="' + x.id + '" data-st="' + (st === 'rechazado' ? 'pendiente' : 'rechazado') + '">' + (st === 'rechazado' ? 'Reabrir' : 'Rechazar') + '</button><button class="btn sm" style="width:100%" data-act="setEstado" data-id="' + x.id + '" data-st="verificado">Verificar</button></div>';
         return '<div class="card req"><div class="top"><div class="avatar" style="background:' + COLS[x.id.charCodeAt(0) % COLS.length] + '">' + initials(x.name || 'T') + '</div><div class="tx"><b>' + esc(x.name || 'Sin nombre') + '</b><span>' + esc([x.zona, x.city].filter(Boolean).join(', ')) + ' · ' + esc(rs) + '</span></div><span class="tag ' + (st === 'verificado' ? 'ok' : st === 'rechazado' ? 'danger' : '') + '">' + ESTADO[st] + '</span></div>' +
-          '<p class="desc">' + esc(x.exp || 'Experiencia sin indicar') + ' · ' + usd(x.tarifa || 0) + ' por visita' + (x.bio ? ' · «' + esc(x.bio) + '»' : '') + '</p>' + priv + '<div style="margin-top:14px">' + btns + '</div></div>';
+          '<p class="desc">' + esc(x.exp || 'Experiencia sin indicar') + ' · ' + usd(x.tarifa || 0) + ' por visita' + (x.bio ? ' · «' + esc(x.bio) + '»' : '') + '</p>' + priv + '<button class="btn ghost sm" style="width:100%;margin-top:12px" data-act="adminDocs" data-id="' + x.id + '" data-n="' + esc(x.name || '') + '">Ver fotos de documentos</button><div style="margin-top:12px">' + btns + '</div></div>';
       }).join('') : '<div class="empty"><div class="ei">' + ic('badge') + '</div><b>Nada por aquí</b><p>No hay técnicos en esta lista.</p></div>') + '</div>';
+  }
+  function delReq(q) {
+    var ref = db.collection('solicitudes').doc(q.id);
+    return ref.collection('mensajes').get().then(function (s) { return Promise.all(s.docs.map(function (d) { return d.ref.delete(); })); }).then(function () { return ref.delete(); });
+  }
+  /* Chat de cada solicitud */
+  var convUnsub = null, convFor = null;
+  function syncConv() {
+    var want = S.sheet && S.sheet.t === 'conv' && HAS_FB ? S.sheet.id : null;
+    if (want === convFor) return;
+    if (convUnsub) { convUnsub(); convUnsub = null; }
+    convFor = want; S.convMsgs = [];
+    if (want) convUnsub = db.collection('solicitudes').doc(want).collection('mensajes').orderBy('ts').onSnapshot(function (s) {
+      S.convMsgs = s.docs.map(function (d) { return d.data(); }); render();
+    }, function () { toast('No se pudo abrir el chat.'); });
   }
   function jobSt(id, st, msg) {
     db.collection('solicitudes').doc(id).update({ st: st }).then(function () { toast(msg); }).catch(function (e) { toast(fbMsg(e)); });
@@ -1045,7 +1225,7 @@ body .on-grad .logo { color: #fff; }
       '<div style="padding-inline:20px"><div class="card" style="padding:18px"><div class="row"><div><b style="font-size:18px">' + (S.techOnline ? 'Disponible ahora' : 'No disponible') + '</b><div class="muted" style="font-size:14.5px">Activa para recibir solicitudes en tu zona</div></div><button class="switch' + (S.techOnline ? ' on' : '') + '" data-act="online" role="switch" aria-checked="' + S.techOnline + '" aria-label="Disponible"></button></div></div>' +
       '<div class="stat3" style="margin-top:14px"><div class="card stat"><b>' + usd(total).replace('.00', '') + '</b><span>Cobrado</span></div><div class="card stat"><b>' + n + '</b><span>Trabajos</span></div><div class="card stat"><b>' + avg + '</b><span>Calificación</span></div></div>' +
       '<div class="sec-head"><h2>Solicitudes nuevas</h2><span class="count">' + pend.length + ' pendientes</span></div>' +
-      (pend.length ? pend.map(function (q) { return '<div class="card req"><div class="top"><div class="avatar" style="background:#2a7f9e">' + initials(q.cliente) + '</div><div class="tx"><b>' + esc(q.cliente) + '</b><span>' + esc(q.rubro) + (q.z ? ' · ' + esc(q.z) : '') + '</span></div><span class="price"><b>' + usd(q.amt) + '</b></span></div><p class="desc">«' + esc(q.d) + '»</p><div class="tag ok" style="margin-bottom:14px">' + ic('shieldOk') + 'Pago ya en custodia</div><div class="two"><button class="btn ghost sm" style="width:100%" data-act="decline" data-id="' + q.id + '">Rechazar</button><button class="btn sm" style="width:100%" data-act="accept" data-id="' + q.id + '">Aceptar</button></div></div>'; }).join('') : '<div class="card" style="padding:28px 20px;text-align:center"><div class="muted">' + (S.techOnline ? 'No tienes solicitudes pendientes. Cuando un cliente te contrate, aparecerá aquí.' : 'Activa tu disponibilidad para ver solicitudes.') + '</div></div>') + '</div></div>';
+      (pend.length ? pend.map(function (q) { return '<div class="card req"><div class="top"><div class="avatar" style="background:#2a7f9e">' + initials(q.cliente) + '</div><div class="tx"><b>' + esc(q.cliente) + '</b><span>' + esc(q.rubro) + (q.z ? ' · ' + esc(q.z) : '') + '</span></div><span class="price"><b>' + usd(q.amt) + '</b></span></div><p class="desc">«' + esc(q.d) + '»</p><div class="tag ok" style="margin-bottom:14px">' + ic('shieldOk') + 'Pago ya en custodia</div><div class="two"><button class="btn ghost sm" style="width:100%" data-act="decline" data-id="' + q.id + '">Rechazar</button><button class="btn sm" style="width:100%" data-act="accept" data-id="' + q.id + '">Aceptar</button></div><button class="btn ghost sm" style="width:100%;margin-top:10px" data-act="conv" data-id="' + q.id + '" data-n="' + esc(q.cliente) + '">' + ic('send') + 'Escribir al cliente</button></div>'; }).join('') : '<div class="card" style="padding:28px 20px;text-align:center"><div class="muted">' + (S.techOnline ? 'No tienes solicitudes pendientes. Cuando un cliente te contrate, aparecerá aquí.' : 'Activa tu disponibilidad para ver solicitudes.') + '</div></div>') + '</div></div>';
   }
   function techJobsFB() {
     var jobs = S.jobsDB.map(jobView).filter(function (j) { return j.st === 'trabajando' || j.st === 'porliberar' || j.st === 'liberado'; });
@@ -1053,7 +1233,7 @@ body .on-grad .logo { color: #fff; }
       (jobs.length ? jobs.map(function (j) {
         var tag = j.st === 'liberado' ? '<span class="tag ok">Pagado</span>' : j.st === 'porliberar' ? '<span class="tag">Terminado</span>' : '<span class="tag">En curso</span>';
         var act = j.st === 'trabajando' ? '<button class="btn sm" style="width:100%" data-act="finishJob" data-id="' + j.id + '">Marcar como terminado</button>' : j.st === 'porliberar' ? '<div class="codehint" style="background:var(--teal-soft);color:var(--btn)">Código de cierre para tu cliente: <b>' + j.code + '</b></div>' : '';
-        return '<div class="card req"><div class="top"><div class="avatar" style="background:#2a7f9e">' + initials(j.cliente) + '</div><div class="tx"><b>' + esc(j.cliente) + '</b><span>' + esc(j.rubro) + (j.z ? ' · ' + esc(j.z) : '') + '</span></div>' + tag + '</div><p class="desc">«' + esc(j.d) + '»</p>' + act + '<div class="amount"><span class="muted">' + (j.st === 'liberado' ? 'Cobrado' : 'Pago en custodia') + '</span><span class="price"><b>' + usd(j.amt) + '</b></span></div></div>';
+        return '<div class="card req"><div class="top"><div class="avatar" style="background:#2a7f9e">' + initials(j.cliente) + '</div><div class="tx"><b>' + esc(j.cliente) + '</b><span>' + esc(j.rubro) + (j.z ? ' · ' + esc(j.z) : '') + '</span></div>' + tag + '</div><p class="desc">«' + esc(j.d) + '»</p>' + act + (j.st !== 'liberado' ? '<button class="btn ghost sm" style="width:100%;margin-top:10px" data-act="conv" data-id="' + j.id + '" data-n="' + esc(j.cliente) + '">' + ic('send') + 'Chat con ' + esc(j.cliente.split(' ')[0]) + '</button>' : '') + '<div class="amount"><span class="muted">' + (j.st === 'liberado' ? 'Cobrado' : 'Pago en custodia') + '</span><span class="price"><b>' + usd(j.amt) + '</b></span></div></div>';
       }).join('') : '<div class="empty"><div class="ei">' + ic('inbox') + '</div><b>Sin trabajos en curso</b><p>Acepta una solicitud desde Inicio y aparecerá aquí.</p><button class="btn" data-act="tab" data-tab="inicio">Ver solicitudes</button></div>') + '</div>' + fab();
   }
   function ingresosFB() {
@@ -1077,7 +1257,7 @@ body .on-grad .logo { color: #fff; }
         var data = d.exists ? d.data() : null;
         var name = (data && data.name) || pendingName || u.displayName || (u.email || '').split('@')[0];
         var role = S.role || (data && data.role) || 'cliente';
-        if (!data) return ref.set({ name: name, email: u.email, role: role, createdAt: Date.now() }, { merge: true }).then(function () { return [name, role]; });
+        if (!data) return ref.set({ name: name, email: u.email, role: role, createdAt: Date.now(), acepto: { v: LEGAL_VERSION, ts: Date.now(), via: 'continuar' } }, { merge: true }).then(function () { return [name, role]; });
         if (data.role !== role) ref.update({ role: role });
         return [name, role];
       }).then(function (r) {
@@ -1109,6 +1289,8 @@ body .on-grad .logo { color: #fff; }
       if (!/^\S+@\S+\.\S+$/.test(m)) return go({ authErr: 'Escribe un correo válido, por ejemplo tu@correo.com.' });
       if (p.length < 6) return go({ authErr: 'Tu contraseña debe tener al menos 6 caracteres.' });
       if (n && n.value.trim()) { S.user.name = n.value.trim(); S.form.name = n.value.trim(); }
+      var tc = document.getElementById('aTerms');
+      if (tc && !tc.checked) return go({ authErr: 'Debes aceptar los términos y la política de privacidad para crear tu cuenta.' });
       if (!HAS_FB) { S.user.email = m; S.authErr = ''; return enter(); }
       S.authErr = '';
       if (S.authMode === 'register') {
@@ -1116,7 +1298,7 @@ body .on-grad .logo { color: #fff; }
         pendingName = n.value.trim();
         var nm = pendingName;
         fbAuth.createUserWithEmailAndPassword(m, p).then(function (c) {
-          return db.collection('users').doc(c.user.uid).set({ name: nm }, { merge: true });
+          return db.collection('users').doc(c.user.uid).set({ name: nm, acepto: { v: LEGAL_VERSION, ts: Date.now(), via: 'registro' } }, { merge: true });
         }).then(function () { S.user.name = nm; S.form.name = nm; render(); }).catch(function (er) { pendingName = null; go({ authErr: fbMsg(er) }); });
       } else {
         pendingName = null;
@@ -1124,6 +1306,11 @@ body .on-grad .logo { color: #fff; }
       }
     } else if (e.target.id === 'homeSearch') {
       go({ tab: 'servicios', q: document.getElementById('hq').value, filterRubro: null });
+    } else if (e.target.id === 'convForm') {
+      var ci = document.getElementById('convIn'), ct = ci.value.trim().slice(0, 500);
+      if (!ct || !S.sheet || S.sheet.t !== 'conv') return;
+      ci.value = '';
+      db.collection('solicitudes').doc(S.sheet.id).collection('mensajes').add({ de: S.uid, x: ct, ts: Date.now() }).catch(function (er) { toast(fbMsg(er)); });
     } else if (e.target.id === 'chatForm') {
       var i = document.getElementById('chatIn'), txt = i.value; i.value = ''; sendChat(txt); document.getElementById('chatIn').focus();
     }
@@ -1139,7 +1326,11 @@ body .on-grad .logo { color: #fff; }
     else if (id === 'cBs') { var w = parseFloat(el.value.replace(/\./g, '').replace(',', '.')); S.bsVal = el.value; S.usdVal = isNaN(w) ? '' : (w / BCV).toFixed(2); document.getElementById('cUsd').value = S.usdVal; }
     else if (id === 'chatIn') { document.getElementById('chatSend').classList.toggle('on', !!el.value.trim()); }
   });
-  app.addEventListener('change', function (e) { var el = e.target; if (el.dataset && el.dataset.f) { S.form[el.dataset.f] = el.value; var b = document.getElementById('obNext'); if (b) b.disabled = !obValid(); } });
+  app.addEventListener('change', function (e) {
+    var el = e.target;
+    if (el.dataset && el.dataset.doc) return handleDoc(el);
+    if (el.dataset && el.dataset.chk) { S.form[el.dataset.chk] = el.checked; var b0 = document.getElementById('obNext'); if (b0) b0.disabled = !obValid(); return; }
+    if (el.dataset && el.dataset.f) { S.form[el.dataset.f] = el.value; var b = document.getElementById('obNext'); if (b) b.disabled = !obValid(); } });
 
   /* Tasa BCV en vivo (DolarApi Venezuela). Si falla, usa la última tasa guardada en el navegador. */
   function loadRate() {
