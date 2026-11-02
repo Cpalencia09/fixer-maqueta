@@ -1384,8 +1384,8 @@ body .on-grad .logo { color: #fff; }
         var data = d.exists ? d.data() : null;
         var name = (data && data.name) || pendingName || u.displayName || (u.email || '').split('@')[0];
         var role = S.role || (data && data.role) || 'cliente';
-        if (!data) return ref.set({ name: name, email: u.email, role: role, createdAt: Date.now(), acepto: { v: LEGAL_VERSION, ts: Date.now(), via: 'continuar' } }, { merge: true }).then(function () { return [name, role]; });
-        if (data.role !== role) ref.update({ role: role });
+        if (!data) return ref.set({ name: name, email: (u.email || '').toLowerCase(), role: role, createdAt: Date.now(), acepto: { v: LEGAL_VERSION, ts: Date.now(), via: 'continuar' } }, { merge: true }).then(function () { return [name, role]; });
+        if (data.role !== role || !data.email) ref.update({ role: role, email: (u.email || '').toLowerCase() });
         return [name, role];
       }).then(function (r) {
         var ex = function (col) { return db.collection(col).doc(u.uid).get().then(function (a) { return a.exists; }, function () { return false; }); };
@@ -1426,7 +1426,7 @@ body .on-grad .logo { color: #fff; }
         pendingName = n.value.trim();
         var nm = pendingName;
         fbAuth.createUserWithEmailAndPassword(m, p).then(function (c) {
-          return db.collection('users').doc(c.user.uid).set({ name: nm, acepto: { v: LEGAL_VERSION, ts: Date.now(), via: 'registro' } }, { merge: true });
+          return db.collection('users').doc(c.user.uid).set({ name: nm, email: m.toLowerCase(), acepto: { v: LEGAL_VERSION, ts: Date.now(), via: 'registro' } }, { merge: true });
         }).then(function () { S.user.name = nm; S.form.name = nm; render(); }).catch(function (er) { pendingName = null; go({ authErr: fbMsg(er) }); });
       } else {
         pendingName = null;
