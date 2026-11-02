@@ -373,6 +373,15 @@ body .on-grad .logo { color: #fff; }
 .legal-t p.li { padding-left: 16px; position: relative; }
 .legal-t p.li::before { content: "•"; position: absolute; left: 3px; color: var(--teal); }
 .msg small { display: block; font-size: 11px; opacity: .7; margin-top: 4px; }
+.logo.xl { font-size: 72px; }
+.splash { min-height: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; background: var(--grad); color: #fff; animation: fade .35s; }
+.splash .logo { animation: pop .7s cubic-bezier(.2, .8, .2, 1); }
+.splash .tagline { color: rgba(255, 255, 255, .85); margin-top: 18px; animation: fade 1s; }
+.loadbar { width: 120px; height: 4px; border-radius: 4px; background: rgba(255, 255, 255, .25); overflow: hidden; margin-top: 34px; }
+.loadbar i { display: block; height: 100%; width: 40%; border-radius: 4px; background: #fff; animation: slide 1.1s ease-in-out infinite; }
+@keyframes pop { from { transform: scale(.88); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes slide { from { transform: translateX(-110%); } to { transform: translateX(300%); } }
+.fab .bdg { top: -3px; left: auto; right: -3px; }
 /* sheets */
 .scrim { position: absolute; inset: 0; background: rgba(14, 26, 39, .5); z-index: 20; display: flex; flex-direction: column; justify-content: flex-end; animation: fade .2s; }
 .sheet { background: var(--card); border-radius: 28px 28px 0 0; max-height: 88%; display: flex; flex-direction: column; overflow: hidden; animation: up .25s cubic-bezier(.2,.8,.2,1); }
@@ -421,7 +430,7 @@ body .on-grad .logo { color: #fff; }
 }
 </style>
 
-<div class="stage"><div class="shell" id="app"></div></div>
+<div class="stage"><div class="shell" id="app"><div class="splash"><span class="logo xl white">F&#305;xer<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94z"/></svg></span><div class="tagline">Tus técnicos cercanos</div><div class="loadbar"><i></i></div></div></div></div>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -613,6 +622,8 @@ body .on-grad .logo { color: #fff; }
     var n = 0;
     if (S.role === 'tecnico' && HAS_FB && key === 'inicio' && S.techOnline) n = S.jobsDB.filter(function (j) { return j.st === 'pendiente'; }).length;
     if (S.role === 'cliente' && key === 'solicitudes') n = S.requests.filter(function (q) { return q.st === 'porliberar'; }).length;
+    if (S.role === 'cliente' && key === 'soporte' && S.supMine) n = S.supMine.sinLeerUsuario || 0;
+    if (key === 'perfil' && S.isSoporte) n = supUnread();
     return n ? '<i class="bdg">' + n + '</i>' : '';
   }
   function notifRow() {
@@ -650,6 +661,9 @@ body .on-grad .logo { color: #fff; }
   }
   function safeImg(s) { return typeof s === 'string' && /^data:image\/jpeg;base64,[A-Za-z0-9+\/=]+$/.test(s) ? s : ''; }
 
+  function splashHtml() {
+    return '<div class="splash"><span class="logo xl white">Fıxer' + ic('wrench') + '</span><div class="tagline">Tus técnicos cercanos</div><div class="loadbar"><i></i></div></div>';
+  }
   function fechaTxt() { var f = RATE.fecha || ''; return f.length >= 10 ? f.slice(8, 10) + '/' + f.slice(5, 7) + '/' + f.slice(0, 4) : ''; }
   function ratePill(cls) {
     var tip = RATE.live ? 'Tasa oficial BCV' + (RATE.fecha ? ' · ' + fechaTxt() : '') : 'No se pudo actualizar. Mostrando la última tasa guardada' + (RATE.fecha ? ' (' + fechaTxt() + ')' : '') + '.';
@@ -665,6 +679,7 @@ body .on-grad .logo { color: #fff; }
   function norm(s) { return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
 
   /* ---------- Firebase (si no hay configuración, la app funciona en modo demo) ---------- */
+  var T0 = Date.now();
   var CFG = window.FIREBASE_CONFIG;
   var HAS_FB = !!(CFG && CFG.apiKey && CFG.apiKey.indexOf('TU_') !== 0 && window.firebase);
   var fbAuth, db, unsubReq = [], pendingName = null;
@@ -687,7 +702,7 @@ body .on-grad .logo { color: #fff; }
 
   /* ---------- Estado ---------- */
   var S = {
-    screen: HAS_FB ? 'loading' : 'landing', uid: null, role: null, techDB: [], jobsDB: [], adminTechs: [], priv: {}, isAdmin: false, adminF: 'pendiente', tab: 'inicio', step: 1, authMode: 'login', authErr: '',
+    screen: 'loading', uid: null, role: null, isSoporte: false, supMine: null, supMsgsInit: false, staffConvs: [], soporteTeam: [], supF: 'abiertas', techDB: [], jobsDB: [], adminTechs: [], priv: {}, isAdmin: false, adminF: 'pendiente', tab: 'inicio', step: 1, authMode: 'login', authErr: '',
     user: { name: 'Carlos Palencia', email: 'elgramu702@gmail.com' },
     form: { name: 'Carlos Palencia', phone: '', cedula: '', city: '', zona: '', rubros: [], exp: '', bio: '', docs: { ced: false, selfie: false, cert: false }, imgs: {}, consent: false, tarifa: '', h24: false, radio: '10' },
     q: '', filterRubro: null, sheet: null, toast: '', mapZoom: 1, gps: false, convSwap: false, usdVal: '', bsVal: '',
@@ -720,7 +735,11 @@ body .on-grad .logo { color: #fff; }
       return '<button class="' + (S.tab === i[0] ? 'on' : '') + '" data-act="tab" data-tab="' + i[0] + '">' + ic(i[2]) + badge(i[0]) + i[1] + '</button>';
     }).join('') + '</nav>';
   }
-  function fab() { return '<button class="fab" data-act="chat" aria-label="Soporte">' + ic('headset') + '</button>'; }
+  function supUnread() { return S.staffConvs.filter(function (c) { return c.sinLeer > 0 && c.abierto !== false; }).length; }
+  function fab() {
+    var n = S.supMine ? S.supMine.sinLeerUsuario || 0 : 0;
+    return '<button class="fab" data-act="chat" aria-label="Soporte">' + ic('headset') + (n ? '<i class="bdg">' + n + '</i>' : '') + '</button>';
+  }
 
   /* ---------- Pantallas ---------- */
   function landing() {
@@ -893,7 +912,7 @@ body .on-grad .logo { color: #fff; }
     return '<div class="view"><div class="page-h"><h1>Perfil</h1></div>' +
       '<div class="card prof"><div class="pa">' + initials(u.name) + '</div><div style="min-width:0"><b>' + esc(u.name) + ic('badge') + '</b><div class="em">' + esc(u.email) + '</div><span class="tag">' + (tec ? 'Técnico' : 'Cliente') + '</span></div></div>' +
       '<div class="card menu"><button class="mi big" data-act="home"><div class="ic">' + ic('sync') + '</div><div class="tx">Cambiar modalidad<span>Volver a la pantalla de selección de rol</span></div>' + ic('chevR', 'chev') + '</button></div>' +
-      (S.isAdmin ? '<div class="card menu"><button class="mi" data-act="admin">' + ic('award') + '<span class="tx">Panel de administración</span>' + ic('chevR', 'chev') + '</button></div>' : '') + '<div class="card menu"><button class="mi" data-act="kyc">' + ic('shieldOk', '') + '<span class="tx" style="color:var(--ink)">Verificación KYC</span><span class="ok">Verificado</span>' + ic('chevR', 'chev') + '</button>' +
+      (S.isAdmin ? '<div class="card menu"><button class="mi" data-act="admin">' + ic('award') + '<span class="tx">Panel de administración</span>' + ic('chevR', 'chev') + '</button></div>' : '') + (S.isSoporte ? '<div class="card menu"><button class="mi" data-act="sop">' + ic('headset') + '<span class="tx">Panel de soporte</span>' + (supUnread() ? '<span class="tag danger">' + supUnread() + '</span>' : '') + ic('chevR', 'chev') + '</button></div>' : '') + '<div class="card menu"><button class="mi" data-act="kyc">' + ic('shieldOk', '') + '<span class="tx" style="color:var(--ink)">Verificación KYC</span><span class="ok">Verificado</span>' + ic('chevR', 'chev') + '</button>' +
       notifRow() + '<button class="mi" data-act="legal" data-k="priv">' + ic('shield') + '<span class="tx">Política de privacidad</span>' + ic('chevR', 'chev') + '</button>' +
       '<button class="mi" data-act="legal" data-k="terms">' + ic('file') + '<span class="tx">Términos y condiciones</span>' + ic('chevR', 'chev') + '</button>' +
       '<button class="mi" data-act="chat">' + ic('help') + '<span class="tx">Ayuda y soporte</span>' + ic('chevR', 'chev') + '</button></div>' +
@@ -930,6 +949,21 @@ body .on-grad .logo { color: #fff; }
   /* hojas */
   function sheetHtml() {
     var sh = S.sheet; if (!sh) return '';
+    if (sh.t === 'chat' && HAS_FB && S.uid) {
+      var sm = S.convMsgs.length ? S.convMsgs.map(function (m) { return '<div class="msg ' + (m.de === S.uid ? 'u' : 'b') + '">' + esc(m.x) + '<small>' + (m.de === S.uid ? '' : 'Soporte · ') + new Date(m.ts).toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit' }) + '</small></div>'; }).join('') :
+        '<div class="chat-empty"><div class="ci">' + ic('headset') + '</div><b>Hola 👋 ¿En qué podemos ayudarte?</b><p>Escríbenos y una persona del equipo te responde aquí mismo.</p><div class="quick">' + ['Tengo un problema con una solicitud', 'No puedo liberar el pago', 'Quiero verificar mi cuenta de técnico'].map(function (q) { return '<button data-act="supQuick" data-q="' + q + '">' + q + '</button>'; }).join('') + '</div></div>';
+      return '<div class="scrim" data-act="closeSheet"><div class="sheet chat" data-stop><div class="sheet-h"><div class="ic">' + ic('headset') + '</div><div><b>Soporte Fixer</b><span><i></i>Te respondemos en este chat</span></div><button class="x" data-act="closeSheet" aria-label="Cerrar">' + ic('x') + '</button></div>' +
+        '<div class="sheet-b" id="convBody">' + sm + '</div>' +
+        '<form class="chat-in" id="convForm"><div class="input"><input id="convIn" placeholder="Escribe tu mensaje..." autocomplete="off" maxlength="500" aria-label="Mensaje"><button type="submit" class="on" aria-label="Enviar">' + ic('send') + '</button></div></form></div></div>';
+    }
+    if (sh.t === 'sconv') {
+      var cv = S.staffConvs.filter(function (x) { return x.uid === sh.id; })[0] || {}, abierta = cv.abierto !== false;
+      var sms = S.convMsgs.length ? S.convMsgs.map(function (m) { return '<div class="msg ' + (m.de === S.uid ? 'u' : 'b') + '">' + esc(m.x) + '<small>' + (m.esSoporte ? 'Soporte · ' : '') + new Date(m.ts).toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit' }) + '</small></div>'; }).join('') : '<p class="muted" style="text-align:center">Sin mensajes todavía.</p>';
+      return '<div class="scrim" data-act="closeSheet"><div class="sheet chat" data-stop><div class="sheet-h"><div class="ic">' + ic('user') + '</div><div><b>' + esc(sh.n) + '</b><span>' + (cv.role === 'tecnico' ? 'Técnico' : 'Cliente') + (cv.email ? ' · ' + esc(cv.email) : '') + '</span></div><button class="x" data-act="closeSheet" aria-label="Cerrar">' + ic('x') + '</button></div>' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 20px;border-bottom:1px solid var(--line)"><span class="tag ' + (abierta ? '' : 'ok') + '">' + (abierta ? 'Abierta' : 'Resuelta') + '</span><button class="btn ghost sm" style="height:38px;padding:0 14px" data-act="supEstado" data-id="' + esc(sh.id) + '" data-v="' + (abierta ? '0' : '1') + '">' + (abierta ? 'Marcar resuelta' : 'Reabrir') + '</button></div>' +
+        '<div class="sheet-b" id="convBody">' + sms + '</div>' +
+        '<form class="chat-in" id="convForm"><div class="input"><input id="convIn" placeholder="Responde como Soporte..." autocomplete="off" maxlength="500" aria-label="Respuesta"><button type="submit" class="on" aria-label="Enviar">' + ic('send') + '</button></div></form></div></div>';
+    }
     if (sh.t === 'chat') {
       var body = S.chat.length ? S.chat.map(function (m) { return '<div class="msg ' + m.r + '">' + esc(m.x) + '</div>'; }).join('') :
         '<div class="chat-empty"><div class="ci">' + ic('sparkles') + '</div><b>Hola 👋 ¿En qué puedo ayudarte?</b><p>Pregúntame por técnicos, rubros o cómo funciona el pago seguro.</p><div class="quick">' + ['¿Cómo funciona el pago?', '¿Qué es el código de cierre?', '¿Cómo se verifican los técnicos?'].map(function (q) { return '<button data-act="quick" data-q="' + q + '">' + q + '</button>'; }).join('') + '</div></div>';
@@ -977,19 +1011,19 @@ body .on-grad .logo { color: #fff; }
     syncConv();
     var prev = app.querySelector('.view'), key = S.screen + S.role + S.tab + S.step + (S.filterRubro || ''), top = prev && key === lastKey ? prev.scrollTop : 0;
     var h = '';
-    if (S.screen === 'loading') h = '<div class="view"><div class="success"><p class="muted">Cargando…</p></div></div>';
+    if (S.screen === 'loading') h = splashHtml();
     else if (S.screen === 'landing') h = landing();
     else if (S.screen === 'auth') h = auth();
     else if (S.screen === 'onboarding') h = onboarding();
     else if (S.screen === 'done') h = obDone();
     else if (S.role === 'cliente') {
       var items = [['inicio', 'Inicio', 'home'], ['servicios', 'Servicios', 'wrench'], ['solicitudes', 'Solicitudes', 'inbox'], ['soporte', 'Soporte', 'headset'], ['perfil', 'Perfil', 'user']];
-      var v = S.tab === 'inicio' ? homeClient() : S.tab === 'servicios' ? (S.filterRubro ? rubroList() : servicios()) : S.tab === 'solicitudes' ? solicitudes() : S.tab === 'admin' ? adminView() : perfil();
+      var v = S.tab === 'inicio' ? homeClient() : S.tab === 'servicios' ? (S.filterRubro ? rubroList() : servicios()) : S.tab === 'solicitudes' ? solicitudes() : S.tab === 'admin' ? adminView() : S.tab === 'sop' ? supportView() : perfil();
       h = v + nav(items);
     } else {
       var it2 = [['inicio', 'Inicio', 'home'], ['solicitudes', 'Solicitudes', 'inbox'], ['ingresos', 'Ingresos', 'grid'], ['perfil', 'Perfil', 'user']];
       var fbT = HAS_FB && S.uid;
-      h = (S.tab === 'inicio' ? (fbT ? techHomeFB() : techHome()) : S.tab === 'solicitudes' ? (fbT ? techJobsFB() : techJobs()) : S.tab === 'ingresos' ? (fbT ? ingresosFB() : ingresos()) : S.tab === 'admin' ? adminView() : perfil()) + nav(it2);
+      h = (S.tab === 'inicio' ? (fbT ? techHomeFB() : techHome()) : S.tab === 'solicitudes' ? (fbT ? techJobsFB() : techJobs()) : S.tab === 'ingresos' ? (fbT ? ingresosFB() : ingresos()) : S.tab === 'admin' ? adminView() : S.tab === 'sop' ? supportView() : perfil()) + nav(it2);
     }
     var keep = {};
     var keepC = {};
@@ -1072,6 +1106,7 @@ body .on-grad .logo { color: #fff; }
       var u = fbAuth.currentUser, id = S.uid;
       Promise.all(S.requests.map(delReq).concat([
         db.collection('tecnicos_docs').where('uid', '==', id).get().then(function (s) { return Promise.all(s.docs.map(function (d) { return d.ref.delete(); })); }),
+        db.collection('soporte').doc(id).collection('mensajes').get().then(function (s) { return Promise.all(s.docs.map(function (d) { return d.ref.delete(); })); }).then(function () { return db.collection('soporte').doc(id).delete(); }),
         db.collection('users').doc(id).delete(), db.collection('tecnicos').doc(id).delete(), db.collection('tecnicos_privado').doc(id).delete()
       ])).then(function () { return u.delete(); }).then(function () {
         go({ sheet: null, screen: 'landing', role: null, tab: 'inicio' }); toast('Cuenta eliminada.');
@@ -1088,6 +1123,14 @@ body .on-grad .logo { color: #fff; }
     enterTech: function () { go({ screen: 'app', tab: 'inicio' }); },
     /* técnico */
     admin: function () { go({ tab: 'admin' }); },
+    sop: function () { go({ tab: 'sop' }); },
+    supF: function (d) { go({ supF: d.f }); },
+    sconv: function (d) { go({ sheet: { t: 'sconv', id: d.id, n: d.n } }); },
+    supQuick: function (d) { supSend(d.q); },
+    supEstado: function (d) {
+      db.collection('soporte').doc(d.id).update({ abierto: d.v === '1' }).then(function () { go({ sheet: null }); toast(d.v === '1' ? 'Conversación reabierta.' : 'Conversación marcada como resuelta.'); }).catch(function (e) { toast(fbMsg(e)); });
+    },
+    teamDel: function (d) { db.collection('soporte_equipo').doc(d.id).delete().then(function () { toast('Persona quitada del equipo.'); }).catch(function (e) { toast(fbMsg(e)); }); },
     adminDocs: function (d) {
       S.docView = { name: d.n, imgs: null }; go({ sheet: { t: 'docs' } });
       db.collection('tecnicos_docs').where('uid', '==', d.id).get().then(function (s) {
@@ -1191,7 +1234,7 @@ body .on-grad .logo { color: #fff; }
           '<div class="two"><button class="btn ghost sm" style="width:100%" data-act="setEstado" data-id="' + x.id + '" data-st="' + (st === 'rechazado' ? 'pendiente' : 'rechazado') + '">' + (st === 'rechazado' ? 'Reabrir' : 'Rechazar') + '</button><button class="btn sm" style="width:100%" data-act="setEstado" data-id="' + x.id + '" data-st="verificado">Verificar</button></div>';
         return '<div class="card req"><div class="top"><div class="avatar" style="background:' + COLS[x.id.charCodeAt(0) % COLS.length] + '">' + initials(x.name || 'T') + '</div><div class="tx"><b>' + esc(x.name || 'Sin nombre') + '</b><span>' + esc([x.zona, x.city].filter(Boolean).join(', ')) + ' · ' + esc(rs) + '</span></div><span class="tag ' + (st === 'verificado' ? 'ok' : st === 'rechazado' ? 'danger' : '') + '">' + ESTADO[st] + '</span></div>' +
           '<p class="desc">' + esc(x.exp || 'Experiencia sin indicar') + ' · ' + usd(x.tarifa || 0) + ' por visita' + (x.bio ? ' · «' + esc(x.bio) + '»' : '') + '</p>' + priv + '<button class="btn ghost sm" style="width:100%;margin-top:12px" data-act="adminDocs" data-id="' + x.id + '" data-n="' + esc(x.name || '') + '">Ver fotos de documentos</button><div style="margin-top:12px">' + btns + '</div></div>';
-      }).join('') : '<div class="empty"><div class="ei">' + ic('badge') + '</div><b>Nada por aquí</b><p>No hay técnicos en esta lista.</p></div>') + '</div>';
+      }).join('') : '<div class="empty"><div class="ei">' + ic('badge') + '</div><b>Nada por aquí</b><p>No hay técnicos en esta lista.</p></div>') + teamBox() + '</div>';
   }
   function delReq(q) {
     var ref = db.collection('solicitudes').doc(q.id);
@@ -1200,13 +1243,88 @@ body .on-grad .logo { color: #fff; }
   /* Chat de cada solicitud */
   var convUnsub = null, convFor = null;
   function syncConv() {
-    var want = S.sheet && S.sheet.t === 'conv' && HAS_FB ? S.sheet.id : null;
-    if (want === convFor) return;
+    var sh = S.sheet, path = null;
+    if (HAS_FB && S.uid && sh) {
+      if (sh.t === 'conv') path = 'solicitudes/' + sh.id;
+      else if (sh.t === 'chat') path = 'soporte/' + S.uid;
+      else if (sh.t === 'sconv') path = 'soporte/' + sh.id;
+    }
+    if (path === convFor) return;
     if (convUnsub) { convUnsub(); convUnsub = null; }
-    convFor = want; S.convMsgs = [];
-    if (want) convUnsub = db.collection('solicitudes').doc(want).collection('mensajes').orderBy('ts').onSnapshot(function (s) {
-      S.convMsgs = s.docs.map(function (d) { return d.data(); }); render();
-    }, function () { toast('No se pudo abrir el chat.'); });
+    convFor = path; S.convMsgs = [];
+    if (path) {
+      var pp = path.split('/');
+      convUnsub = db.collection(pp[0]).doc(pp[1]).collection('mensajes').orderBy('ts').onSnapshot(function (s) {
+        S.convMsgs = s.docs.map(function (d) { return d.data(); }); render(); supRead();
+      }, function () { if (pp[0] === 'solicitudes') toast('No se pudo abrir el chat.'); });
+      supRead();
+    }
+  }
+  /* Soporte: conversación de cada usuario con el equipo */
+  var supPrev = null, staffPrev = null;
+  function listenSupport() {
+    var quiet = function () {};
+    supPrev = null; staffPrev = null;
+    unsubReq.push(db.collection('soporte').doc(S.uid).onSnapshot(function (d) {
+      S.supMine = d.exists ? d.data() : null;
+      var n = S.supMine ? S.supMine.sinLeerUsuario || 0 : 0;
+      if (supPrev !== null && n > supPrev && !(S.sheet && S.sheet.t === 'chat')) alertUser('Soporte te respondió.');
+      supPrev = n; render();
+    }, quiet));
+    if (S.isSoporte) unsubReq.push(db.collection('soporte').onSnapshot(function (s) {
+      S.staffConvs = s.docs.map(function (d) { return d.data(); }).sort(function (a, b) { return (b.ts || 0) - (a.ts || 0); });
+      var cur = {}; S.staffConvs.forEach(function (c) { cur[c.uid] = c.sinLeer || 0; });
+      if (staffPrev) S.staffConvs.forEach(function (c) { if ((c.sinLeer || 0) > (staffPrev[c.uid] || 0) && !(S.sheet && S.sheet.t === 'sconv' && S.sheet.id === c.uid)) alertUser('Soporte: mensaje nuevo de ' + (c.name || 'un usuario') + '.'); });
+      staffPrev = cur; render();
+    }, quiet));
+    if (S.isAdmin) unsubReq.push(db.collection('soporte_equipo').onSnapshot(function (s) {
+      S.soporteTeam = s.docs.map(function (d) { return d.data(); }); render();
+    }, quiet));
+  }
+  function supSend(text) {
+    text = (text || '').trim().slice(0, 500);
+    if (!text || !HAS_FB || !S.uid || !S.sheet) return;
+    var t = S.sheet.t, id = t === 'sconv' ? S.sheet.id : S.uid, now = Date.now();
+    var ref = db.collection('soporte').doc(id), inc = firebase.firestore.FieldValue.increment(1), p;
+    if (t === 'sconv') {
+      p = ref.collection('mensajes').add({ de: S.uid, esSoporte: true, x: text, ts: now }).then(function () {
+        return ref.update({ last: text, ts: now, sinLeer: 0, sinLeerUsuario: inc, abierto: true });
+      });
+    } else {
+      p = ref.collection('mensajes').add({ de: S.uid, esSoporte: false, x: text, ts: now }).then(function () {
+        return ref.set({ uid: S.uid, name: S.user.name, email: S.user.email, role: S.role, last: text, ts: now, abierto: true, sinLeer: inc, sinLeerUsuario: 0 }, { merge: true });
+      });
+    }
+    p.catch(function (e) { toast(fbMsg(e)); });
+  }
+  function supRead() {
+    if (!S.sheet || !HAS_FB || !S.uid) return;
+    if (S.sheet.t === 'chat' && S.supMine && S.supMine.sinLeerUsuario > 0) db.collection('soporte').doc(S.uid).update({ sinLeerUsuario: 0 }).catch(function () {});
+    if (S.sheet.t === 'sconv') {
+      var c = S.staffConvs.filter(function (x) { return x.uid === S.sheet.id; })[0];
+      if (c && c.sinLeer > 0) db.collection('soporte').doc(c.uid).update({ sinLeer: 0 }).catch(function () {});
+    }
+  }
+  function ago(ts) {
+    var m = Math.round((Date.now() - ts) / 60000);
+    return m < 1 ? 'ahora' : m < 60 ? m + ' min' : m < 1440 ? Math.round(m / 60) + ' h' : Math.round(m / 1440) + ' d';
+  }
+  function supportView() {
+    var f = S.supF, ab = S.staffConvs.filter(function (c) { return c.abierto !== false; }), re = S.staffConvs.filter(function (c) { return c.abierto === false; });
+    var list = f === 'abiertas' ? ab : re;
+    return '<div class="view"><div class="page-h" style="padding-top:36px"><button class="chip" data-act="tab" data-tab="perfil" style="margin-bottom:18px">← Perfil</button><h1>Soporte</h1><p>Conversaciones con usuarios. Responde desde aquí.</p></div>' +
+      '<div class="chips" style="margin-bottom:20px"><button class="chip' + (f === 'abiertas' ? ' on' : '') + '" data-act="supF" data-f="abiertas">Abiertas · ' + ab.length + '</button><button class="chip' + (f === 'resueltas' ? ' on' : '') + '" data-act="supF" data-f="resueltas">Resueltas · ' + re.length + '</button></div>' +
+      (list.length ? list.map(function (c) {
+        return '<button class="card tech" data-act="sconv" data-id="' + c.uid + '" data-n="' + esc(c.name || 'Usuario') + '"><div class="avatar" style="background:' + COLS[c.uid.charCodeAt(0) % COLS.length] + '">' + initials(c.name || 'U') + '</div><div class="info"><div class="nm">' + esc(c.name || 'Usuario') + (c.sinLeer > 0 ? '<span class="tag danger">' + c.sinLeer + ' nuevo' + (c.sinLeer > 1 ? 's' : '') + '</span>' : '') + '</div><div class="rb">' + (c.role === 'tecnico' ? 'Técnico' : 'Cliente') + ' · hace ' + ago(c.ts || 0) + '</div><div class="muted" style="font-size:15px;overflow-wrap:anywhere">' + esc((c.last || '').slice(0, 120)) + '</div></div></button>';
+      }).join('') : '<div class="empty"><div class="ei">' + ic('headset') + '</div><b>' + (f === 'abiertas' ? 'Sin conversaciones abiertas' : 'Nada resuelto todavía') + '</b><p>Cuando un usuario escriba a soporte, aparecerá aquí.</p></div>') + '</div>';
+  }
+  function teamBox() {
+    return '<div class="sec-head" style="margin-top:34px"><h2>Equipo de soporte</h2><span class="count">' + S.soporteTeam.length + ' personas</span></div>' +
+      '<div class="card" style="padding:18px"><form id="teamForm" class="codebox" style="margin-top:0"><div class="input">' + ic('mail') + '<input id="teamMail" type="email" placeholder="Correo de la persona" aria-label="Correo de la persona"></div><button class="btn sm" type="submit">Agregar</button></form>' +
+      '<p class="muted" style="font-size:13.5px;margin:10px 0 0">La persona debe tener una cuenta en Fixer. Tendrá acceso a las conversaciones de soporte.</p>' +
+      (S.soporteTeam.length ? '<div style="margin-top:8px">' + S.soporteTeam.map(function (m) {
+        return '<div class="tx-row"><div class="ic" style="background:var(--teal-soft);color:var(--teal)">' + ic('headset') + '</div><div class="tx"><b>' + esc(m.name || 'Sin nombre') + '</b><span>' + esc(m.email || '') + '</span></div><button class="btn ghost sm" style="height:38px;padding:0 14px" data-act="teamDel" data-id="' + m.uid + '">Quitar</button></div>';
+      }).join('') + '</div>' : '') + '</div>';
   }
   function jobSt(id, st, msg) {
     db.collection('solicitudes').doc(id).update({ st: st }).then(function () { toast(msg); }).catch(function (e) { toast(fbMsg(e)); });
@@ -1245,11 +1363,20 @@ body .on-grad .logo { color: #fff; }
       '</div>' + fab();
   }
   if (HAS_FB) {
+    var firstAuth = true;
     fbAuth.onAuthStateChanged(function (u) {
+      if (firstAuth) {
+        firstAuth = false;
+        var wait = Math.max(0, 1100 - (Date.now() - T0));
+        if (wait) return setTimeout(function () { handleAuth(u); }, wait);
+      }
+      handleAuth(u);
+    });
+    function handleAuth(u) {
       unsubReq.forEach(function (f) { f(); }); unsubReq = [];
       if (!u) {
         var out = S.screen === 'loading' ? 'landing' : (S.screen === 'app' || S.screen === 'onboarding' || S.screen === 'done') ? 'auth' : S.screen;
-        return go({ uid: null, requests: [], techDB: [], jobsDB: [], adminTechs: [], priv: {}, isAdmin: false, sheet: null, screen: out });
+        return go({ uid: null, requests: [], techDB: [], jobsDB: [], adminTechs: [], priv: {}, isAdmin: false, isSoporte: false, supMine: null, staffConvs: [], soporteTeam: [], sheet: null, screen: out });
       }
       S.uid = u.uid;
       var ref = db.collection('users').doc(u.uid);
@@ -1261,12 +1388,13 @@ body .on-grad .logo { color: #fff; }
         if (data.role !== role) ref.update({ role: role });
         return [name, role];
       }).then(function (r) {
-        return db.collection('admins').doc(u.uid).get().then(function (a) { S.isAdmin = a.exists; return r; }, function () { S.isAdmin = false; return r; });
+        var ex = function (col) { return db.collection(col).doc(u.uid).get().then(function (a) { return a.exists; }, function () { return false; }); };
+        return Promise.all([ex('admins'), ex('soporte_equipo')]).then(function (x) { S.isAdmin = x[0]; S.isSoporte = x[0] || x[1]; return r; });
       }).then(function (r) {
         S.user = { name: r[0], email: u.email }; S.form.name = r[0]; S.role = r[1];
-        listenReqs(); enterSession();
+        listenReqs(); listenSupport(); enterSession();
       }).catch(function (e) { go({ screen: 'auth', authErr: fbMsg(e) }); });
-    });
+    }
   }
   function sendChat(text) {
     text = text.trim(); if (!text) return;
@@ -1306,11 +1434,20 @@ body .on-grad .logo { color: #fff; }
       }
     } else if (e.target.id === 'homeSearch') {
       go({ tab: 'servicios', q: document.getElementById('hq').value, filterRubro: null });
+    } else if (e.target.id === 'teamForm') {
+      var tm = document.getElementById('teamMail'), mail = tm.value.trim().toLowerCase();
+      if (!/^\S+@\S+\.\S+$/.test(mail)) return toast('Escribe un correo válido.');
+      db.collection('users').where('email', '==', mail).get().then(function (s) {
+        if (s.empty) return toast('No hay ninguna cuenta con ese correo. Pídele que se registre primero.');
+        var u0 = s.docs[0]; tm.value = '';
+        return db.collection('soporte_equipo').doc(u0.id).set({ uid: u0.id, name: u0.data().name || '', email: mail, ts: Date.now() }).then(function () { toast('Agregado al equipo de soporte.'); });
+      }).catch(function (er) { toast(fbMsg(er)); });
     } else if (e.target.id === 'convForm') {
       var ci = document.getElementById('convIn'), ct = ci.value.trim().slice(0, 500);
-      if (!ct || !S.sheet || S.sheet.t !== 'conv') return;
+      if (!ct || !S.sheet) return;
       ci.value = '';
-      db.collection('solicitudes').doc(S.sheet.id).collection('mensajes').add({ de: S.uid, x: ct, ts: Date.now() }).catch(function (er) { toast(fbMsg(er)); });
+      if (S.sheet.t === 'conv') db.collection('solicitudes').doc(S.sheet.id).collection('mensajes').add({ de: S.uid, x: ct, ts: Date.now() }).catch(function (er) { toast(fbMsg(er)); });
+      else supSend(ct);
     } else if (e.target.id === 'chatForm') {
       var i = document.getElementById('chatIn'), txt = i.value; i.value = ''; sendChat(txt); document.getElementById('chatIn').focus();
     }
@@ -1352,6 +1489,7 @@ body .on-grad .logo { color: #fff; }
     if (changed) render();
   }
   loadRate(); setInterval(loadRate, 30 * 60 * 1000);
+  if (!HAS_FB) setTimeout(function () { go({ screen: 'landing' }); }, 1100);
 
   render();
 })();
