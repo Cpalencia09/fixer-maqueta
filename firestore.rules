@@ -8,6 +8,13 @@ service cloud.firestore {
           && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
     }
 
+    // Equipo de soporte: administradores y personas dadas de alta en soporte_equipo/{uid}.
+    function isSoporte() {
+      return request.auth != null
+          && (exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+              || exists(/databases/$(database)/documents/soporte_equipo/$(request.auth.uid)));
+    }
+
     // Participantes de una solicitud: el cliente que la creó y el técnico contratado.
     function enSolicitud(id) {
       let s = get(/databases/$(database)/documents/solicitudes/$(id)).data;
@@ -23,6 +30,7 @@ service cloud.firestore {
     // Perfil de cada usuario: solo lo ve y edita su dueño.
     match /users/{uid} {
       allow read, write: if request.auth != null && request.auth.uid == uid;
+      allow read: if isAdmin();
     }
 
     // Perfil público del técnico: lo ve cualquier usuario con sesión.
@@ -58,6 +66,39 @@ service cloud.firestore {
       allow read: if request.auth != null && resource.data.uid == request.auth.uid;
       allow read: if isAdmin();
       allow delete: if request.auth != null && resource.data.uid == request.auth.uid;
+    }
+
+    // Equipo de soporte: cada persona puede comprobar si está en la lista; solo un admin la gestiona.
+    match /soporte_equipo/{uid} {
+      allow get: if request.auth != null && request.auth.uid == uid;
+      allow list, create, update, delete: if isAdmin();
+    }
+
+    // Conversación de soporte de cada usuario ("soporte/{uid}") y sus mensajes.
+    match /soporte/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow read: if isSoporte();
+      allow create, update: if request.auth != null && request.auth.uid == uid && request.resource.data.uid == uid;
+      // El equipo solo puede cambiar estado, contadores y último mensaje.
+      allow update: if isSoporte()
+                    && request.resource.data.diff(resource.data).affectedKeys()
+                         .hasOnly(['abierto', 'sinLeer', 'sinLeerUsuario', 'last', 'ts']);
+      allow delete: if request.auth != null && request.auth.uid == uid;
+
+      match /mensajes/{m} {
+        allow read: if request.auth != null && (request.auth.uid == uid || isSoporte());
+        allow create: if request.auth != null
+                      && request.resource.data.x is string
+                      && request.resource.data.x.size() > 0
+                      && request.resource.data.x.size() <= 500
+                      && ((request.auth.uid == uid
+                           && request.resource.data.de == uid
+                           && request.resource.data.esSoporte == false)
+                          || (isSoporte()
+                              && request.resource.data.de == request.auth.uid
+                              && request.resource.data.esSoporte == true));
+        allow delete: if request.auth != null && request.auth.uid == uid;
+      }
     }
 
     // Solicitudes: las ve el cliente que la creó y el técnico contratado.
