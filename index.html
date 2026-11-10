@@ -725,7 +725,7 @@ body .on-grad .logo { color: #fff; }
 
   /* ---------- Estado ---------- */
   var S = {
-    screen: 'loading', uid: null, role: null, isSoporte: false, supMine: null, supMsgsInit: false, staffConvs: [], soporteTeam: [], supF: 'abiertas', techDB: [], jobsDB: [], adminTechs: [], priv: {}, isAdmin: false, adminF: 'pendiente', tab: 'inicio', step: 1, authMode: 'login', authErr: '',
+    screen: 'loading', uid: null, role: null, isSoporte: false, supMine: null, supMsgsInit: false, staffConvs: [], soporteTeam: [], contactos: [], supF: 'abiertas', techDB: [], jobsDB: [], adminTechs: [], priv: {}, isAdmin: false, adminF: 'pendiente', tab: 'inicio', step: 1, authMode: 'login', authErr: '',
     user: { name: 'Carlos Palencia', email: 'elgramu702@gmail.com' },
     form: { name: 'Carlos Palencia', phone: '', cedula: '', city: '', zona: '', rubros: [], exp: '', bio: '', docs: { ced: false, selfie: false, cert: false }, imgs: {}, consent: false, tarifa: '', h24: false, radio: '10' },
     q: '', filterRubro: null, sheet: null, toast: '', mapZoom: 1, gps: false, convSwap: false, usdVal: '', bsVal: '',
@@ -1153,6 +1153,7 @@ body .on-grad .logo { color: #fff; }
     supEstado: function (d) {
       db.collection('soporte').doc(d.id).update({ abierto: d.v === '1' }).then(function () { go({ sheet: null }); toast(d.v === '1' ? 'Conversación reabierta.' : 'Conversación marcada como resuelta.'); }).catch(function (e) { toast(fbMsg(e)); });
     },
+    contactDel: function (d) { db.collection('contactos').doc(d.id).delete().then(function () { toast('Mensaje borrado.'); }).catch(function (e) { toast(fbMsg(e)); }); },
     teamDel: function (d) { db.collection('soporte_equipo').doc(d.id).delete().then(function () { toast('Persona quitada del equipo.'); }).catch(function (e) { toast(fbMsg(e)); }); },
     adminDocs: function (d) {
       S.docView = { name: d.n, imgs: null }; go({ sheet: { t: 'docs' } });
@@ -1257,7 +1258,7 @@ body .on-grad .logo { color: #fff; }
           '<div class="two"><button class="btn ghost sm" style="width:100%" data-act="setEstado" data-id="' + x.id + '" data-st="' + (st === 'rechazado' ? 'pendiente' : 'rechazado') + '">' + (st === 'rechazado' ? 'Reabrir' : 'Rechazar') + '</button><button class="btn sm" style="width:100%" data-act="setEstado" data-id="' + x.id + '" data-st="verificado">Verificar</button></div>';
         return '<div class="card req"><div class="top"><div class="avatar" style="background:' + COLS[x.id.charCodeAt(0) % COLS.length] + '">' + initials(x.name || 'T') + '</div><div class="tx"><b>' + esc(x.name || 'Sin nombre') + '</b><span>' + esc([x.zona, x.city].filter(Boolean).join(', ')) + ' · ' + esc(rs) + '</span></div><span class="tag ' + (st === 'verificado' ? 'ok' : st === 'rechazado' ? 'danger' : '') + '">' + ESTADO[st] + '</span></div>' +
           '<p class="desc">' + esc(x.exp || 'Experiencia sin indicar') + ' · ' + usd(x.tarifa || 0) + ' por visita' + (x.bio ? ' · «' + esc(x.bio) + '»' : '') + '</p>' + priv + '<button class="btn ghost sm" style="width:100%;margin-top:12px" data-act="adminDocs" data-id="' + x.id + '" data-n="' + esc(x.name || '') + '">Ver fotos de documentos</button><div style="margin-top:12px">' + btns + '</div></div>';
-      }).join('') : '<div class="empty"><div class="ei">' + ic('badge') + '</div><b>Nada por aquí</b><p>No hay técnicos en esta lista.</p></div>') + teamBox() + '</div>';
+      }).join('') : '<div class="empty"><div class="ei">' + ic('badge') + '</div><b>Nada por aquí</b><p>No hay técnicos en esta lista.</p></div>') + teamBox() + contactBox() + '</div>';
   }
   function delReq(q) {
     var ref = db.collection('solicitudes').doc(q.id);
@@ -1303,6 +1304,18 @@ body .on-grad .logo { color: #fff; }
     if (S.isAdmin) unsubReq.push(db.collection('soporte_equipo').onSnapshot(function (s) {
       S.soporteTeam = s.docs.map(function (d) { return d.data(); }); render();
     }, quiet));
+    if (S.isAdmin) unsubReq.push(db.collection('contactos').orderBy('ts', 'desc').limit(50).onSnapshot(function (s) {
+      S.contactos = s.docs.map(function (d) { var x = d.data(); x.id = d.id; return x; }); render();
+    }, quiet));
+  }
+  function contactBox() {
+    var n = S.contactos.length;
+    return '<div class="sec-head" style="margin-top:34px"><h2>Mensajes del sitio web</h2><span class="count">' + n + (n === 1 ? ' mensaje' : ' mensajes') + '</span></div>' +
+      (n ? S.contactos.map(function (c) {
+        return '<div class="card req"><div class="top"><div class="avatar" style="background:' + COLS[(c.nombre || 'a').charCodeAt(0) % COLS.length] + '">' + initials(c.nombre || '?') + '</div><div class="tx"><b>' + esc(c.nombre) + '</b><span>' + esc(c.correo) + '</span></div><span class="tag">' + esc(c.tema || 'Otro') + '</span></div>' +
+          '<p class="desc" style="white-space:pre-wrap;overflow-wrap:anywhere">' + esc(c.mensaje) + '</p>' +
+          '<div class="amount"><span class="muted">' + new Date(c.ts).toLocaleString('es-VE', { dateStyle: 'medium', timeStyle: 'short' }) + '</span><button class="btn ghost sm" style="height:38px;padding:0 14px" data-act="contactDel" data-id="' + c.id + '">Borrar</button></div></div>';
+      }).join('') : '<div class="card" style="padding:22px;text-align:center"><div class="muted">Aún no hay mensajes. Cuando alguien escriba desde la página de contacto, aparecerá aquí.</div></div>');
   }
   function supSend(text) {
     text = (text || '').trim().slice(0, 500);
@@ -1399,7 +1412,7 @@ body .on-grad .logo { color: #fff; }
       unsubReq.forEach(function (f) { f(); }); unsubReq = [];
       if (!u) {
         var out = S.screen === 'loading' ? 'landing' : (S.screen === 'app' || S.screen === 'onboarding' || S.screen === 'done') ? 'auth' : S.screen;
-        return go({ uid: null, requests: [], techDB: [], jobsDB: [], adminTechs: [], priv: {}, isAdmin: false, isSoporte: false, supMine: null, staffConvs: [], soporteTeam: [], sheet: null, screen: out });
+        return go({ uid: null, requests: [], techDB: [], jobsDB: [], adminTechs: [], priv: {}, isAdmin: false, isSoporte: false, supMine: null, staffConvs: [], soporteTeam: [], contactos: [], sheet: null, screen: out });
       }
       S.uid = u.uid;
       var ref = db.collection('users').doc(u.uid);
