@@ -236,7 +236,6 @@ pages['index.html'] = shell({
 <section class="hero">
   <div class="wrap hero-grid">
     <div>
-      <span class="badge-live"><i></i>Tus técnicos cercanos</span>
       <h1>Paga cuando el trabajo <em>esté hecho.</em></h1>
       <p class="lead">Fixer te conecta con técnicos verificados de tu zona. Tu dinero queda en custodia y solo se libera cuando tú ingresas el código de cierre.</p>
       <div class="hero-cta">
