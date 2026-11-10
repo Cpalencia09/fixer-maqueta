@@ -101,6 +101,22 @@ service cloud.firestore {
       }
     }
 
+    // Mensajes del formulario de contacto del sitio web: cualquiera puede enviar uno (con límites de tamaño);
+    // solo un administrador puede leerlos o borrarlos.
+    match /contactos/{id} {
+      allow create: if request.resource.data.keys().hasOnly(['nombre', 'correo', 'tema', 'mensaje', 'ts'])
+                    && request.resource.data.nombre is string
+                    && request.resource.data.nombre.size() > 0 && request.resource.data.nombre.size() <= 80
+                    && request.resource.data.correo is string
+                    && request.resource.data.correo.size() <= 120
+                    && request.resource.data.correo.matches('.+@.+\\..+')
+                    && request.resource.data.tema is string && request.resource.data.tema.size() <= 60
+                    && request.resource.data.mensaje is string
+                    && request.resource.data.mensaje.size() >= 10 && request.resource.data.mensaje.size() <= 1000
+                    && request.resource.data.ts is number;
+      allow read, delete: if isAdmin();
+    }
+
     // Solicitudes: las ve el cliente que la creó y el técnico contratado.
     match /solicitudes/{id} {
       allow create: if request.auth != null && request.resource.data.clienteId == request.auth.uid;
