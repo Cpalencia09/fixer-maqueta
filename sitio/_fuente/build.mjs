@@ -85,7 +85,7 @@ const NAV = [
 const FAQ = {
   General: [
     ['¿Qué es Fixer?', '<p>Fixer es una plataforma que conecta a personas que necesitan un servicio con técnicos y profesionales independientes de su zona: plomeros, electricistas, mecánicos, carpinteros y más.</p><p>Cada técnico pasa por una verificación de identidad y el pago queda en custodia hasta que el trabajo esté hecho.</p>'],
-    ['¿En qué zonas funciona?', '<p>Estamos en fase piloto en <b>Lechería, Anzoátegui</b> y sus alrededores. Iremos abriendo nuevas zonas cuando haya técnicos verificados que las cubran.</p>'],
+    ['¿En qué zonas funciona?', '<p>Estamos abriendo zonas poco a poco, según haya técnicos verificados que las cubran. Si tu zona aún no aparece, <a href="contacto.html">escríbenos</a> y te avisamos cuando llegue.</p>'],
     ['¿Cuánto cuesta usar Fixer?', '<p>Buscar y contactar técnicos es gratis. Pagas la tarifa del servicio que define cada técnico, y la ves antes de contratar. Los detalles de comisiones se publicarán antes de abrir el cobro en la app.</p>'],
     ['¿Tengo que descargar algo de una tienda?', '<p>No. Fixer funciona desde el navegador de tu teléfono y puedes instalarla en la pantalla de inicio en menos de un minuto. <a href="descargar.html">Mira cómo.</a></p>']
   ],
@@ -93,7 +93,7 @@ const FAQ = {
     ['¿Cómo funciona el pago en custodia?', '<p>Al contratar, tu pago queda retenido. El técnico trabaja con la tranquilidad de que el pago existe, y tú tienes la seguridad de que no se libera hasta que lo apruebes con el código de cierre.</p>'],
     ['¿Qué es el código de cierre?', '<p>Es un código de cuatro dígitos que el técnico te da cuando termina el trabajo. Al ingresarlo en la app, confirmas que todo está en orden y el pago se libera. Sin ese código, el dinero no se mueve.</p>'],
     ['¿En qué moneda se paga?', '<p>Las tarifas se muestran en dólares, con su equivalente en bolívares calculado con la tasa oficial del BCV. La tasa se actualiza automáticamente.</p>'],
-    ['¿Ya funciona el pago en custodia?', '<p>Estamos en fase piloto y el cobro se habilita por etapas. La app te avisa cuando una función de pago esté disponible en tu zona, y los métodos aceptados se anunciarán en ese momento.</p>'],
+    ['¿Ya funciona el pago en custodia?', '<p>El cobro se habilita por etapas. La app te avisa cuando una función de pago esté disponible en tu zona, y los métodos aceptados se anunciarán en ese momento.</p>'],
     ['¿Qué pasa si el técnico no acepta mi solicitud?', '<p>Si el técnico rechaza la solicitud, no se te cobra nada y puedes elegir a otro. Si tienes un problema con un trabajo, escríbenos desde el chat de soporte dentro de la app.</p>']
   ],
   Técnicos: [
@@ -130,7 +130,7 @@ const PHONE = `
       </div>
       <div class="scr-card">
         <div class="scr-av">LH</div>
-        <div><b>Luis H. ${ic('badge')}</b><small>Plomero · Lechería</small><div class="tags"><span>Verificado</span><span class="pro">Super Pro</span></div></div>
+        <div><b>Luis H. ${ic('badge')}</b><small>Plomero · cerca de ti</small><div class="tags"><span>Verificado</span><span class="pro">Super Pro</span></div></div>
         <div class="price">$40.00<small data-bs-of="40">≈ Bs. 35.556</small></div>
       </div>
       <div class="scr-nav"><span class="on">${ic('home')}</span><span>${ic('wrench')}</span><span>${ic('inbox')}</span><span>${ic('headset')}</span><span>${ic('user')}</span></div>
@@ -190,13 +190,13 @@ ${body}
     <div class="foot-grid">
       <div class="foot-brand">
         <a class="brand" href="index.html"><img class="brand-mark" src="../icon-192.png" alt="" width="38" height="38"><span class="brand-word">Fixer</span></a>
-        <p>Técnicos de confianza y pago protegido. Piloto en Lechería, Anzoátegui.</p>
+        <p>Técnicos de confianza y pago protegido.</p>
       </div>
       <div><h4>Producto</h4><ul><li><a href="como-funciona.html">Cómo funciona</a></li><li><a href="tecnicos.html">Para técnicos</a></li><li><a href="descargar.html">Descargar</a></li><li><a href="../">Abrir la app</a></li></ul></div>
       <div><h4>Ayuda</h4><ul><li><a href="como-funciona.html#faq">Preguntas frecuentes</a></li><li><a href="contacto.html">Contacto</a></li></ul></div>
       <div><h4>Legal</h4><ul><li><a href="legal.html#terms">Términos y condiciones</a></li><li><a href="legal.html#priv">Política de privacidad</a></li></ul></div>
     </div>
-    <div class="foot-bottom"><span>© <span id="year">2026</span> Fixer. Todos los derechos reservados.</span><span>Hecho para Anzoátegui</span></div>
+    <div class="foot-bottom"><span>© <span id="year">2026</span> Fixer. Todos los derechos reservados.</span></div>
   </div>
 </footer>
 ${scripts}
@@ -230,13 +230,13 @@ const pages = {};
 
 pages['index.html'] = shell({
   file: 'index.html',
-  title: 'Fixer · Técnicos de confianza con pago protegido en Lechería',
-  desc: 'Encuentra técnicos verificados cerca de ti. Tu pago queda en custodia y solo se libera cuando ingresas el código de cierre. Piloto en Lechería, Anzoátegui.',
+  title: 'Fixer · Técnicos de confianza con pago protegido',
+  desc: 'Encuentra técnicos verificados cerca de ti. Tu pago queda en custodia y solo se libera cuando ingresas el código de cierre.',
   body: `
 <section class="hero">
   <div class="wrap hero-grid">
     <div>
-      <span class="badge-live"><i></i>Piloto en Lechería, Anzoátegui</span>
+      <span class="badge-live"><i></i>Tus técnicos cercanos</span>
       <h1>Paga cuando el trabajo <em>esté hecho.</em></h1>
       <p class="lead">Fixer te conecta con técnicos verificados de tu zona. Tu dinero queda en custodia y solo se libera cuando tú ingresas el código de cierre.</p>
       <div class="hero-cta">
@@ -263,7 +263,7 @@ pages['index.html'] = shell({
     <div class="steps">
       <article class="step reveal">
         <div class="step-n">1</div><h3>Busca</h3><p>Elige el rubro y compara técnicos cerca de ti: tarifa por visita, calificación y zona.</p>
-        <div class="mini"><div class="row"><div class="bar">${ic('search')} Plomería en Lechería</div></div><div class="chips"><span class="on">Verificados</span><span>Disponibles ahora</span><span>24 h</span></div></div>
+        <div class="mini"><div class="row"><div class="bar">${ic('search')} Plomería cerca de mí</div></div><div class="chips"><span class="on">Verificados</span><span>Disponibles ahora</span><span>24 h</span></div></div>
       </article>
       <article class="step reveal" style="--d:.1s">
         <div class="step-n">2</div><h3>Contrata</h3><p>Cuéntale qué necesitas y paga en custodia. El técnico recibe la solicitud con tu pago ya respaldado.</p>
@@ -350,31 +350,6 @@ pages['index.html'] = shell({
     <div class="sec-head reveal"><span class="eyebrow">Rubros</span><h2>Para la casa, el negocio y el carro.</h2><p class="lead">Catorce oficios para empezar. Si no ves el tuyo, escríbenos: abrimos rubros según la demanda de la zona.</p></div>
     <div class="rubros">
       ${RUBROS.map((r, i) => `<div class="rubro reveal" style="--c:${r[3]};--d:${(i % 4) * 0.05}s"><span class="ico">${ic(r[2])}</span><b>${r[1]}</b><span>${r[4]}</span></div>`).join('')}
-    </div>
-  </div>
-</section>
-
-<section class="section zone dark" id="zona">
-  <div class="wrap zone-grid">
-    <div class="reveal">
-      <span class="eyebrow">Zona piloto</span>
-      <h2 style="margin-top:18px">Empezamos en Lechería.</h2>
-      <p class="lead" style="margin-top:22px">Arrancamos en Lechería y sus alrededores. Cada zona nueva se abre cuando hay técnicos verificados que la cubran, para que cada solicitud tenga a quién llegar.</p>
-      <div class="towns"><span class="main">Lechería</span><span>Puerto La Cruz</span><span>Barcelona</span><span>Guanta</span></div>
-      <div class="hero-cta" style="margin-top:34px"><a class="btn btn-amber" href="contacto.html">Avísame cuando llegue a mi zona ${ic('arrow', 'go')}</a></div>
-    </div>
-    <div class="radar reveal" style="--d:.1s" aria-hidden="true">
-      <svg viewBox="0 0 520 520" fill="none">
-        <g stroke="#8ff0e2" stroke-opacity=".28"><circle cx="260" cy="260" r="236"/><circle cx="260" cy="260" r="170" stroke-opacity=".22"/><circle cx="260" cy="260" r="104" stroke-opacity=".2"/><circle cx="260" cy="260" r="38" stroke-opacity=".3"/><path d="M260 24v472M24 260h472" stroke-opacity=".12"/><path d="M93 93l334 334M427 93 93 427" stroke-opacity=".07"/></g>
-      </svg>
-      <div class="sweep"></div>
-      <span class="dot amber" style="left:62%;top:40%"></span><span class="dot-label" style="left:62%;top:40%;color:#ffcb5c">Lechería</span>
-      <span class="dot" style="left:42%;top:47%;animation-delay:-.6s"></span><span class="dot-label" style="left:42%;top:47%">Puerto La Cruz</span>
-      <span class="dot" style="left:30%;top:33%;animation-delay:-1.4s"></span><span class="dot-label" style="left:30%;top:33%">Guanta</span>
-      <span class="dot" style="left:27%;top:64%;animation-delay:-2.1s"></span><span class="dot-label" style="left:27%;top:64%">Barcelona</span>
-      <span class="dot" style="left:71%;top:58%;animation-delay:-.9s;opacity:.7"></span>
-      <span class="dot" style="left:54%;top:30%;animation-delay:-1.8s;opacity:.7"></span>
-      <span class="dot" style="left:48%;top:70%;animation-delay:-2.6s;opacity:.7"></span>
     </div>
   </div>
 </section>
@@ -519,7 +494,7 @@ ${pageHero('Para técnicos', 'Tu oficio, más cerca de <em>quien te necesita.</e
       <li>${ic('idcard')}<div>Cédula o RIF vigente<span>Una foto clara, por ambos lados si aplica.</span></div></li>
       <li>${ic('camera')}<div>Una selfie reciente<span>Para confirmar que eres quien dices ser.</span></div></li>
       <li>${ic('phone')}<div>Teléfono o WhatsApp activo<span>Para que podamos contactarte.</span></div></li>
-      <li>${ic('pin')}<div>Tu zona de trabajo<span>Empezamos en Lechería y alrededores.</span></div></li>
+      <li>${ic('pin')}<div>Tu zona de trabajo<span>Para mostrarte las solicitudes cercanas.</span></div></li>
     </ul>
   </div>
 </section>
@@ -649,7 +624,6 @@ ${pageHero('Contacto', 'Hablemos. Te <em>respondemos.</em>', 'Cuéntanos qué ne
     <div style="display:grid;gap:18px" class="reveal">
       <div class="channels" id="channels"></div>
       <div class="note-box">${ic('headset')}<div><b>¿Ya usas la app y algo no salió bien?</b><p>Usa el chat de soporte dentro de Fixer: lo atiende el equipo y tiene el contexto de tu solicitud, así te ayudamos más rápido.</p></div></div>
-      <div class="note-box" style="background:#fff;border:1px solid var(--line)">${ic('pin')}<div><b style="color:var(--text)">Zona piloto</b><p style="color:var(--muted)">Estamos en Lechería y alrededores (Puerto La Cruz, Barcelona y Guanta), Anzoátegui.</p></div></div>
     </div>
   </div>
 </section>
