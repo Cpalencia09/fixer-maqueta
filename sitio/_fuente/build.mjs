@@ -2,6 +2,7 @@
 // Uso (desde la raíz del repositorio):  node sitio/_fuente/build.mjs
 import { readFileSync, writeFileSync } from 'node:fs';
 import vm from 'node:vm';
+import { nombreDentro } from '../../marca/generar.mjs';
 
 const RAIZ = new URL('../../', import.meta.url);
 const SALIDA = new URL('../', import.meta.url);
@@ -55,6 +56,9 @@ const P = {
   swap: '<path d="m16 3 4 4-4 4"/><path d="M20 7H4"/><path d="m8 21-4-4 4-4"/><path d="M4 17h16"/>'
 };
 const ic = (n, cls = '') => `<svg class="i ${cls}" viewBox="0 0 24 24" aria-hidden="true">${P[n]}</svg>`;
+
+/* Nombre de la marca (SVG de trazo, blanco con el techo en menta) */
+const WORDMARK = `<svg class="brand-wm" viewBox="0 0 190 70" role="img" aria-label="Fixer">${nombreDentro('#ffffff', '#7fd6d3')}</svg>`;
 
 /* ---------- Datos ---------- */
 const RUBROS = [
@@ -171,14 +175,14 @@ ${head}
 <a class="skip" href="#main">Saltar al contenido</a>
 <header class="site-header">
   <div class="wrap nav">
-    <a class="brand" href="index.html" aria-label="Fixer, ir al inicio"><img class="brand-mark" src="../icon-192.png" alt="" width="38" height="38"><span class="brand-word">Fixer</span></a>
+    <a class="brand" href="index.html" aria-label="Fixer, ir al inicio"><img class="brand-mark" src="../icon-192.png" alt="" width="38" height="38">${WORDMARK}</a>
     <nav class="nav-links" aria-label="Principal">${NAV.map(([h, t]) => `<a href="${h}"${h === file ? ' aria-current="page"' : ''}>${t}</a>`).join('')}</nav>
     <a class="btn btn-amber btn-sm nav-cta" href="../">Abrir la app ${ic('arrow', 'go')}</a>
     <button class="menu-btn" aria-label="Abrir el menú" aria-expanded="false">${ic('menu')}</button>
   </div>
 </header>
 <div class="drawer" role="dialog" aria-label="Menú">
-  <div class="drawer-top"><a class="brand" href="index.html"><img class="brand-mark" src="../icon-192.png" alt="" width="38" height="38"><span class="brand-word">Fixer</span></a><button class="menu-btn drawer-close" style="display:grid;margin-left:0" aria-label="Cerrar el menú">${ic('x')}</button></div>
+  <div class="drawer-top"><a class="brand" href="index.html"><img class="brand-mark" src="../icon-192.png" alt="" width="38" height="38">${WORDMARK}</a><button class="menu-btn drawer-close" style="display:grid;margin-left:0" aria-label="Cerrar el menú">${ic('x')}</button></div>
   ${NAV.map(([h, t]) => `<a class="dl" href="${h}"${h === file ? ' aria-current="page"' : ''}>${t}${ic('arrow')}</a>`).join('')}
   <a class="btn btn-amber" href="../">Abrir la app ${ic('arrow', 'go')}</a>
 </div>
@@ -189,7 +193,7 @@ ${body}
   <div class="wrap">
     <div class="foot-grid">
       <div class="foot-brand">
-        <a class="brand" href="index.html"><img class="brand-mark" src="../icon-192.png" alt="" width="38" height="38"><span class="brand-word">Fixer</span></a>
+        <a class="brand" href="index.html"><img class="brand-mark" src="../icon-192.png" alt="" width="38" height="38">${WORDMARK}</a>
         <p>Técnicos de confianza y pago protegido.</p>
       </div>
       <div><h4>Producto</h4><ul><li><a href="como-funciona.html">Cómo funciona</a></li><li><a href="tecnicos.html">Para técnicos</a></li><li><a href="descargar.html">Descargar</a></li><li><a href="../">Abrir la app</a></li></ul></div>
